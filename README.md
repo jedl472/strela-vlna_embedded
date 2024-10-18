@@ -1,1 +1,1 @@
-# software for the strela-vlna embedded devices
+This is the software for embedded devices used in the strela-vlna competitions
