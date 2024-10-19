@@ -1,0 +1,12 @@
+Formát zpráv: První 3 znaky - typ zprávy (a zárověň kontrola jestli není něco špatně s přenosem)
+              dále specifické podle typu zprávy
+
+1. Přiloží se tag, čtečka pošle zprávu: "bgn1e2e3e4e" (1e2e3e4e je čtyřbajtové id tagu naflákané dohromady)
+                       odpověď serveru: "12345" (stav účtu, n -> neznámý tag, následující číslo je stav účtu)
+
+2. Operátor vybere akci: "actna1e2e3e4e" - 4. znak "n" - nakup, "p" - prodej, "v" - vyřešení
+                                         - 5. znak typ úlohy (a, b, atd...)
+                                         - dale id tagu
+        odpověď serveru: "k" (k -> ok, n -> error)
+
+3. Operátor ukončí práci s tagem: "end" (asi není uplně potřeba, ale alespoň bude kdyžtak server vědět co se děje, při např neočekávaném ukončení)

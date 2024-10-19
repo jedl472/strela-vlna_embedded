@@ -9,10 +9,13 @@
 #include <PN532.h>
 #include <NfcAdapter.h>
 
-//TODO: knihovny pro wifi, http a další random věci
+// wifi a http
+#include <WiFi.h>
+#include <HTTPClient.h>
 
-
-// -------------------------------------- Nastavení ---------------------------------------
+/*
+  -------------------------------------- Nastavení ---------------------------------------
+*/
 
 #define debug 1 // zatím jenom zapne UART
 
@@ -20,11 +23,14 @@
 #define display_data 23  // Data:  PW
 #define display_cs 5     // CS:    E
 
+const char* wifi_ssid = "GAM2";
+const char* wifi_password = "JejTGame123+";
+String serverName = "http://192.168.22.222:80";
 
+/*
+ --------------------------------- Globání proměnné -------------------------------------
+*/
 
-
-
-// --------------------------------- Globání proměnné -------------------------------------
 // nfc
 PN532_I2C pn532i2c(Wire);
 PN532 nfc_pn532(pn532i2c);
@@ -32,26 +38,34 @@ PN532 nfc_pn532(pn532i2c);
 // display
 U8G2_ST7920_128X64_F_SW_SPI display_u8g2(U8G2_R0, display_clk, display_data, display_cs, /* reset=*/ U8X8_PIN_NONE); // TODO: zjistit co znamená U8X8_PIN_NONE a jestli je potřeba připojit reset pin (RST)
 
-// TODO: blbosti k wifině
-
+// http 
+HTTPClient http;
 
 // TODO: proměné : awaitRequest, deviceState, pressedButon[3]
 
 
-
-// ------------------------------------ Setup + loop --------------------------------------
+/*
+ ------------------------------------ Setup + loop --------------------------------------
+*/
 
 void setup() {
   //TODO: nechat ať se vypisují fáze setupu na display
+
 
   //setup věcí pro debug, zatím v podstatě placeholder a WIP
   if (debug) {
     Serial.begin(115200);
   }
 
+
   //setup displeje, TODO: nechat vykreslit střela vlna startovací obrazovku
+  if (debug) { Serial.println("Nastavuji display"); }
   display_u8g2.begin();
   display_u8g2.setFont(u8g2_font_ncenB08_tr); //tady se dá zkrouhnout místo, fonty zaberou dost paměti
+
+  display_u8g2.drawStr(0, 10, "Inicializace displeje");
+  display_u8g2.sendBuffer();
+
 
   //setup nfc
   nfc_pn532.begin();
@@ -60,18 +74,21 @@ void setup() {
     if (debug) { Serial.println("Nebyl nalezen PN53x modul!"); } //TODO: nechat kreslit na display
     while (1);
   }
+  nfc_pn532.setPassiveActivationRetries(0xFF); // nastavení maximálního počtu pokusů o čtení NFC tagu, odpovídá cca jedné sekundě
+  nfc_pn532.SAMConfig(); // konfigurace NFC modulu pro čtení tagů
+
 
   // TODO: setup wifi a http
+  if (debug) { Serial.println("Připojuji wifi"); }
+  WiFi.begin(wifi_ssid, wifi_password);
+  while(WiFi.status() != WL_CONNECTED) { // zastaví program dokud se nepřipojí k wifi
+    delay(1);
+  }
+  if (debug) { Serial.println("Inicializace hotova"); }
 }
 
 
 void loop() {
-  /*
-    Tady to je trochu na diskuzi, zatím nechám pro inspiraci. Mělo by locknout program, dokud nenajde tag (ještě dělá sekundové pauzy mezi čteními), 
-    pak pokračuje v ifu "uspech". Je to přesně ten způsob na prasaka, který jsem kritizoval. Na druhou stranu, chceme si ztěžovat život čtením 
-    dokumentace k PN532.h? (jasně, když to je locklý, tak se nedá kontrolovat třeba připojení k wifi. Otázkou je, jestli nás to zajímá)
-  */
-
   bool uspech;                             // úspěšné čtení
   uint8_t uid[] = { 0, 0, 0, 0, 0, 0, 0 }; // unikátní ID tagu, asi by mělo jít dát kratší, ale všechny možné tagy mají asi max 7 (?) pozic a chceme riskovat stack overflow?
   uint8_t uidLength;                       // délka ID tagu
@@ -79,37 +96,61 @@ void loop() {
   // zahájení čtení tagů v okolí, výsledek čtení se uloží do nastavených proměnných, tady to by mělo locknout program
   uspech = nfc_pn532.readPassiveTargetID(PN532_MIFARE_ISO14443A, &uid[0], &uidLength);
 
-  /*
-    Tady do této funkce program vstoupí, jestli se načte tag.
 
-    Jak bych to tedy udělal: Na začátku program projde setupem a začne loopovat. V momentě, kdy se načte tag 
-    (program vstoupí do tohodle if (uspech)) se otevře http session a vstoupí do další smyčky. Tam se bude dít:
-      1. Aktualizace načtených hodnot (prostě ta funkce s tlačítkama)
-      2. Následné posílání requestů
-      3. Kontrola, jestli je http session pořád otevřená (pro případ, kdyby to operátor zapnul, načetl, došel si na kafe a pak vypadla síť).
-      4. Profit ???
-
-    Co je tady napsaný je zatím jenom testovací placeholder, pak by to mělo být obsažené ideálně v nějakém debug obalu
-  */
   if (uspech) {
+    // ------------------ počáteční kontrola validity tagu se serverem: ------------------
     Serial.println("Nalezen NFC tag!");
     Serial.print("UID delka: "); Serial.print(uidLength, DEC); Serial.println(" bytu");
     Serial.print("UID hodnoty: ");
-    display_u8g2.clearBuffer();	
-    for (uint8_t i = 0; i < uidLength; i++) {
-      Serial.print(" 0x"); Serial.print(uid[i], HEX);
-      display_u8g2.drawStr(i*20, 10, &String(uid[i], HEX)[0]);
+
+    char tagIdString[8] = ""; //proměnná, která obsahuje id tagu jako znaky, aby se dala tisknout, posílat, atd...
+
+    for (uint8_t i = 0; i < uidLength; i++) {  //TODO: vyřešit, že když začíná id tagu na 0 hází bordel
+      tagIdString[i*2] = String(uid[i], HEX).charAt(0);
+      tagIdString[i*2 + 1] = String(uid[i], HEX).charAt(1);
     }
-    display_u8g2.sendBuffer();
+    Serial.println(tagIdString);
 
-    // vyčkání jedné sekundy před novým čtením (řekl bych, že kdybych smazal, uvařím si USB hub)
-    delay(1000);
+
+    http.begin(serverName.c_str()); // start session
+
+    int httpResponseCode = http.sendRequest("POST", String(tagIdString, HEX));
+    if (httpResponseCode != 200) {
+      Serial.println("Nepodařilo se navázat spojení se serverem");
+    }
+    String payload = http.getString();
+
+    if(payload == "n") {  //struktura requestů popsaná v souboru format-komunikace.txt
+      Serial.println("Neznámý nfc tag"); 
+      http.end();  // neexistuje špatný tag, prostě se odpojí
+    } else { //pokud projde počáteční request, může začít operátor dělat jeho magii
+      Serial.println("Stav účtu: ");  //debug
+      Serial.print(payload);
+
+      bool amIFinished = false;
+      
+      char* typUlohy = "0";
+
+      // ------------------ sem přijde všechna magie s tlačítky a dynamickými requesty ------------------
+      while (!amIFinished) {
+        //TODO: Sem přijdou updaty tlačítek
+        //A vykreslování zvolených hodnot na displej
+        //taky posílání requestů
+
+        if (/*je zmáčknuté end tlačítko?*/ true) {
+          Serial.println("zabíjím session");
+          amIFinished = true;
+          http.sendRequest("POST", "end");
+          http.end();
+        }
+      }
+    }
+
+    delay(1000); 
   }
-
 }
 
-
-// ------------------------------------ Ostatní funkce ------------------------------------
+/*
+ ------------------------------------ Ostatní funkce ------------------------------------
+*/
 // TODO fce: poslat GET, a zkontrolovat response code -> freeze do reconnectu - info na display. Jestli se v posledních 10 sec dělal request, skipnu check
-// TODO fce: update tlačítek
-// TODO fce: poslat request dle awaitRequest
