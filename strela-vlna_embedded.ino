@@ -165,31 +165,36 @@ void loop() {
         //A vykreslování zvolených hodnot na displej
         //taky posílání requestů
 
-        if(current_menu != last_current_menu) {
+        if((current_menu != last_current_menu) || (last_volbyUzivatele[current_menu] != volbyUzivatele[current_menu])) {
           display_u8g2.clear();
           switch(current_menu) { //tento blok pouze vykresluje na display
             case 0:
               display_u8g2.drawStr(0, 10, "Nastavte typ akce: ");
               display_u8g2.drawStr(0, 33, "_");
+              display_u8g2.drawStr(0, 30, String(volbyUzivatele[1]).c_str());
+              display_u8g2.drawStr(20, 30, String(volbyUzivatele[2]).c_str());
               break;
             case 1:
               display_u8g2.drawStr(0, 10, "Nastavte typ ulohy: ");
               display_u8g2.drawStr(20, 33, "_");
+              display_u8g2.drawStr(0, 30, String(volbyUzivatele[1]).c_str());
+              display_u8g2.drawStr(20, 30, String(volbyUzivatele[2]).c_str());
               break;
             default:
               break;
           }
           display_u8g2.sendBuffer();
           last_current_menu = current_menu;
+          last_volbyUzivatele[current_menu] = volbyUzivatele[current_menu];
         }
         
-        if(last_volbyUzivatele[current_menu] != volbyUzivatele[current_menu]) {
+        if() {
           display_u8g2.clear();
-          display_u8g2.drawStr(0, 30, String(volbyUzivatele[current_menu]).c_str());
-          display_u8g2.drawStr(20, 30, String(volbyUzivatele[current_menu]).c_str());
+          display_u8g2.drawStr(0, 30, String(volbyUzivatele[1]).c_str());
+          display_u8g2.drawStr(20, 30, String(volbyUzivatele[2]).c_str());
           display_u8g2.sendBuffer();
 
-          last_volbyUzivatele[current_menu] = volbyUzivatele[current_menu];
+          
         }
         
 
@@ -205,7 +210,7 @@ void loop() {
 
         if(isPressedButton[1] == 1) { //tlacitko doleva
           if((millis() - buttonPressedMillis) > BUTTON_DEBOUNCE) {
-            volbyUzivatele[current_menu] -= 1;
+            if(current_menu != 0) { volbyUzivatele[current_menu] -= 1; }
           }
           buttonPressedMillis = millis();
         }
