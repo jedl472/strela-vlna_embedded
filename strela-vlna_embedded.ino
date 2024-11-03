@@ -128,13 +128,13 @@ void loop() {
       if(String(uid[i], HEX).charAt(0) != 0) {
         tagIdString[i*2] = String(uid[i], HEX).charAt(0);
       } else {
-        tagIdString[i*2] = "0";
+        tagIdString[i*2] = 0;
       }
       
       if(String(uid[i], HEX).charAt(1) != 0) {
         tagIdString[i*2 + 1] = String(uid[i], HEX).charAt(1);
       } else {
-        tagIdString[i*2 + 1] = "0";
+        tagIdString[i*2 + 1] = 0;
       }
 
       Serial.println(uid[i]);
