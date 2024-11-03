@@ -125,25 +125,20 @@ void loop() {
     char tagIdString[8] = ""; //proměnná, která obsahuje id tagu jako znaky, aby se dala tisknout, posílat, atd...
 
     for (uint8_t i = 0; i < uidLength; i++) {  //TODO: vyřešit, že když začíná id tagu na 0 hází bordel
-      if(String(uid[i], HEX).charAt(0) != 0) {
+      if(uid[i] < 10) {
+        tagIdString[i*2 + 1] = String(uid[i], HEX).charAt(0);
+        tagIdString[i*2] = 48;
+      } else {
         tagIdString[i*2] = String(uid[i], HEX).charAt(0);
-      } else {
-        tagIdString[i*2] = 0;
-      }
-      
-      if(String(uid[i], HEX).charAt(1) != 0) {
         tagIdString[i*2 + 1] = String(uid[i], HEX).charAt(1);
-      } else {
-        tagIdString[i*2 + 1] = 0;
       }
-
       Serial.println(uid[i]);
     }
     Serial.println(tagIdString);
 
     display_u8g2.clear();
     display_u8g2.drawStr(0, 10, "Tag nalezen");
-    display_u8g2.drawStr(0, 25, "Čekám na server");
+    display_u8g2.drawStr(0, 25, "Cekam na server");
     display_u8g2.sendBuffer();
 
     http.begin(serverName.c_str()); // start session
