@@ -205,7 +205,7 @@ void loop() {
 
         if(isPressedButton[2] == 1) { //tlacitko enter
           if(millis() - buttonPressedMillis > BUTTON_DEBOUNCE) {
-            if(current_menu == 1) {
+            if(current_menu == 50) {
               Serial.println("zabíjím session");
               amIFinished = true;
 
