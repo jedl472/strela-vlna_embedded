@@ -127,6 +127,8 @@ void loop() {
     for (uint8_t i = 0; i < uidLength; i++) {  //TODO: vyřešit, že když začíná id tagu na 0 hází bordel
       tagIdString[i*2] = String(uid[i], HEX).charAt(0);
       tagIdString[i*2 + 1] = String(uid[i], HEX).charAt(1);
+
+      Serial.println(uid[i]);
     }
     Serial.println(tagIdString);
 
