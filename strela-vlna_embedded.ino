@@ -42,7 +42,9 @@ U8G2_ST7920_128X64_F_SW_SPI display_u8g2(U8G2_R0, display_clk, display_data, dis
 HTTPClient http;
 
 // TODO: proměné : awaitRequest, deviceState, pressedButon[3]
+bool isPressedButton[5] = {0, 0, 0, 0, 0};
 
+#define BUTTON_DEBOUNCE = 100
 
 /*
  ------------------------------------ Setup + loop --------------------------------------
@@ -132,15 +134,57 @@ void loop() {
       char* typUlohy = "0";
 
       // ------------------ sem přijde všechna magie s tlačítky a dynamickými requesty ------------------
+      uint8_t current_menu = 0;
+
+      uint8_t volbyUzivatele[2] = {0, 0};
+
+      uint8_t buttonPressedMillis = 0;
+
+
       while (!amIFinished) {
         //TODO: Sem přijdou updaty tlačítek
         //A vykreslování zvolených hodnot na displej
         //taky posílání requestů
 
-        if (/*je zmáčknuté end tlačítko?*/ true) {
+        switch(current_menu) { /    /tento blok pouze vykresluje na display
+          case 0:
+            display_u8g2.drawStr(0, 10, "Nastavte typ akce: ");
+            display_u8g2.drawStr(0, 33, "_");
+            break;
+          case y:
+            display_u8g2.drawStr(0, 10, "Nastavte typ ulohy: ");
+            display_u8g2.drawStr(20, 33, "_");
+            break;
+          default:
+            break;
+        }
+        display_u8g2.drawStr(0, 30, String(volbyUzivatele[current_menu]));
+        display_u8g2.drawStr(20, 30, String(volbyUzivatele[current_menu]));
+
+
+        updateButtons(); //blok pro update tlačítek
+
+        if(isPressedButton[0] == 1) { //tlačítko doprava       
+          if(Millis() - buttonPressedMillis > BUTTON_DEBOUNCE) {
+            volbyUzivatele[current_menu] += 1;
+            buttonPressedMillis = Millis();
+          }
+        } 
+
+        if(isPressedButton[1] == 1) { //tlacitko doleva
+          if(Millis() - buttonPressedMillis > BUTTON_DEBOUNCE) {
+            volbyUzivatele[current_menu] -= 1;
+            buttonPressedMillis = Millis();
+          }
+        }
+
+        if(isPressedButton[3] == 1) { // tlacitko end
           Serial.println("zabíjím session");
           amIFinished = true;
-          http.sendRequest("POST", "end");
+
+          requestToSend = "end"; //todo send informace
+
+          http.sendRequest("POST", requestToSend);
           http.end();
         }
       }
@@ -154,3 +198,6 @@ void loop() {
  ------------------------------------ Ostatní funkce ------------------------------------
 */
 // TODO fce: poslat GET, a zkontrolovat response code -> freeze do reconnectu - info na display. Jestli se v posledních 10 sec dělal request, skipnu check
+void updateButtons() {
+  
+}
