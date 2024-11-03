@@ -242,5 +242,9 @@ void loop() {
 */
 // TODO fce: poslat GET, a zkontrolovat response code -> freeze do reconnectu - info na display. Jestli se v posledních 10 sec dělal request, skipnu check
 void updateButtons() {
-  isPressedButton = {!digitalRead(TL1), !digitalRead(TL2), !digitalRead(TL3), !digitalRead(TL4), !digitalRead(TL5)};  
+  isPressedButton[0] = !digitalRead(TL1); //TODO zastřelit se
+  isPressedButton[1] = !digitalRead(TL2);
+  isPressedButton[2] = !digitalRead(TL3);
+  isPressedButton[3] = !digitalRead(TL4);
+  isPressedButton[4] = !digitalRead(TL5);
 }
