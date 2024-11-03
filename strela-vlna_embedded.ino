@@ -16,6 +16,12 @@
 /*
   -------------------------------------- Nastavení ---------------------------------------
 */
+#define TL1 32
+#define TL2 33
+#define TL3 25
+#define TL4 26
+#define TL5 27
+
 
 #define debug 1 // zatím jenom zapne UART
 
@@ -58,6 +64,12 @@ void setup() {
   if (debug) {
     Serial.begin(115200);
   }
+  pinMode(TL1,INPUT_PULLUP);
+  pinMode(TL2,INPUT_PULLUP);
+  pinMode(TL3,INPUT_PULLUP);
+  pinMode(TL4,INPUT_PULLUP);
+  pinMode(TL5,INPUT_PULLUP);
+
 
 
   //setup displeje, TODO: nechat vykreslit střela vlna startovací obrazovku
@@ -199,5 +211,5 @@ void loop() {
 */
 // TODO fce: poslat GET, a zkontrolovat response code -> freeze do reconnectu - info na display. Jestli se v posledních 10 sec dělal request, skipnu check
 void updateButtons() {
-  
+  bool isPressedButton[5] = {digitalRead(TL1),digitalRead(TL2),digitalRead(TL3),digitalRead(TL4),digitalRead(TL5)};  
 }
