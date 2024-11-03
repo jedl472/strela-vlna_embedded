@@ -187,16 +187,6 @@ void loop() {
           last_current_menu = current_menu;
           last_volbyUzivatele[current_menu] = volbyUzivatele[current_menu];
         }
-        
-        if() {
-          display_u8g2.clear();
-          display_u8g2.drawStr(0, 30, String(volbyUzivatele[1]).c_str());
-          display_u8g2.drawStr(20, 30, String(volbyUzivatele[2]).c_str());
-          display_u8g2.sendBuffer();
-
-          
-        }
-        
 
 
         updateButtons(); //blok pro update tlačítek
@@ -210,7 +200,7 @@ void loop() {
 
         if(isPressedButton[1] == 1) { //tlacitko doleva
           if((millis() - buttonPressedMillis) > BUTTON_DEBOUNCE) {
-            if(current_menu != 0) { volbyUzivatele[current_menu] -= 1; }
+            volbyUzivatele[current_menu] -= 1;
           }
           buttonPressedMillis = millis();
         }
@@ -234,7 +224,7 @@ void loop() {
 
         if(isPressedButton[3] == 1) { //tlacitko end
           if((millis() - buttonPressedMillis) > BUTTON_DEBOUNCE) {
-            current_menu -= 1;
+            if(current_menu != 0) { current_menu -= 1; }
           }
           buttonPressedMillis = millis();
         }
