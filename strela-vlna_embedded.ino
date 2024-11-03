@@ -179,6 +179,7 @@ void loop() {
             default:
               break;
           }
+          display_u8g2.sendBuffer();
           last_current_menu = current_menu;
         }
         
@@ -186,6 +187,7 @@ void loop() {
           display_u8g2.clear();
           display_u8g2.drawStr(0, 30, String(volbyUzivatele[current_menu]).c_str());
           display_u8g2.drawStr(20, 30, String(volbyUzivatele[current_menu]).c_str());
+          display_u8g2.sendBuffer();
 
           last_volbyUzivatele[current_menu] = volbyUzivatele[current_menu];
         }
@@ -210,7 +212,7 @@ void loop() {
 
         if(isPressedButton[2] == 1) { //tlacitko enter
           if((millis() - buttonPressedMillis) > BUTTON_DEBOUNCE) {
-            if(current_menu == 50) {
+            if(current_menu == 2) {
               Serial.println("zabíjím session");
               amIFinished = true;
 
