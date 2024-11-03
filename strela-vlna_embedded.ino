@@ -125,8 +125,17 @@ void loop() {
     char tagIdString[8] = ""; //proměnná, která obsahuje id tagu jako znaky, aby se dala tisknout, posílat, atd...
 
     for (uint8_t i = 0; i < uidLength; i++) {  //TODO: vyřešit, že když začíná id tagu na 0 hází bordel
-      tagIdString[i*2] = String(uid[i], HEX).charAt(0);
-      tagIdString[i*2 + 1] = String(uid[i], HEX).charAt(1);
+      if(String(uid[i], HEX).charAt(0) != 0) {
+        tagIdString[i*2] = String(uid[i], HEX).charAt(0);
+      } else {
+        tagIdString[i*2] = "0";
+      }
+      
+      if(String(uid[i], HEX).charAt(1) != 0) {
+        tagIdString[i*2 + 1] = String(uid[i], HEX).charAt(1);
+      } else {
+        tagIdString[i*2 + 1] = "0";
+      }
 
       Serial.println(uid[i]);
     }
