@@ -228,7 +228,7 @@ void loop() {
           }
         }
         Serial.print("cycle ");
-        Serial.print(isPressedButton[2])
+        Serial.print(isPressedButton[2]);
         Serial.println(String(current_menu).c_str());
       }
     }
@@ -242,5 +242,5 @@ void loop() {
 */
 // TODO fce: poslat GET, a zkontrolovat response code -> freeze do reconnectu - info na display. Jestli se v posledních 10 sec dělal request, skipnu check
 void updateButtons() {
-  isPressedButton[5] = {!digitalRead(TL1), !digitalRead(TL2), !digitalRead(TL3), !digitalRead(TL4), !digitalRead(TL5)};  
+  isPressedButton = {!digitalRead(TL1), !digitalRead(TL2), !digitalRead(TL3), !digitalRead(TL4), !digitalRead(TL5)};  
 }
