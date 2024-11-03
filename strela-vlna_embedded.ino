@@ -103,6 +103,7 @@ void setup() {
 
   display_u8g2.clear();
   display_u8g2.drawStr(0, 10, "Inicializace hotova");
+  display_u8g2.drawStr(0, 25, "Cekam na prilozeni tagu");
   display_u8g2.sendBuffer();
 }
 
@@ -151,6 +152,10 @@ void loop() {
 
     if(payload == "n") {  //struktura requestů popsaná v souboru format-komunikace.txt
       Serial.println("Neznámý nfc tag"); 
+      display_u8g2.clear();
+      display_u8g2.drawStr(0, 10, "Neznamy nfc tag");
+      display_u8g2.drawStr(0, 25, "Cekam na prilozeni tagu");
+      display_u8g2.sendBuffer();
       http.end();  // neexistuje špatný tag, prostě se odpojí
     } else { //pokud projde počáteční request, může začít operátor dělat jeho magii
       Serial.println("Stav účtu: ");  //debug
@@ -225,6 +230,10 @@ void loop() {
 
               http.sendRequest("POST", requestToSend);
               http.end();
+
+              display_u8g2.clear();
+              display_u8g2.drawStr(0, 10, "Cekam na prilozeni tagu");
+              display_u8g2.sendBuffer();
             } else {
               current_menu += 1;
             }
