@@ -50,7 +50,7 @@ HTTPClient http;
 // TODO: proměné : awaitRequest, deviceState, pressedButon[3]
 bool isPressedButton[5];
 
-#define BUTTON_DEBOUNCE 100
+#define BUTTON_DEBOUNCE 50
 
 /*
  ------------------------------------ Setup + loop --------------------------------------
@@ -77,6 +77,7 @@ void setup() {
   display_u8g2.begin();
   display_u8g2.setFont(u8g2_font_ncenB08_tr); //tady se dá zkrouhnout místo, fonty zaberou dost paměti
 
+  display_u8g2.clear();
   display_u8g2.drawStr(0, 10, "Inicializace displeje");
   display_u8g2.sendBuffer();
 
@@ -99,6 +100,8 @@ void setup() {
     delay(1);
   }
   if (debug) { Serial.println("Inicializace hotova"); }
+
+  display_u8g2.clear();
   display_u8g2.drawStr(0, 10, "Inicializace hotova");
   display_u8g2.sendBuffer();
 }
@@ -163,6 +166,7 @@ void loop() {
         //taky posílání requestů
 
         if(current_menu != last_current_menu) {
+          display_u8g2.clear();
           switch(current_menu) { //tento blok pouze vykresluje na display
             case 0:
               display_u8g2.drawStr(0, 10, "Nastavte typ akce: ");
@@ -179,6 +183,7 @@ void loop() {
         }
         
         if(last_volbyUzivatele[current_menu] != volbyUzivatele[current_menu]) {
+          display_u8g2.clear();
           display_u8g2.drawStr(0, 30, String(volbyUzivatele[current_menu]).c_str());
           display_u8g2.drawStr(20, 30, String(volbyUzivatele[current_menu]).c_str());
 
@@ -190,21 +195,21 @@ void loop() {
         updateButtons(); //blok pro update tlačítek
 
         if(isPressedButton[0] == 1) { //tlačítko doprava       
-          if(millis() - buttonPressedMillis > BUTTON_DEBOUNCE) {
+          if((millis() - buttonPressedMillis) > BUTTON_DEBOUNCE) {
             volbyUzivatele[current_menu] += 1;
-            buttonPressedMillis = millis();
           }
+          buttonPressedMillis = millis();
         } 
 
         if(isPressedButton[1] == 1) { //tlacitko doleva
-          if(millis() - buttonPressedMillis > BUTTON_DEBOUNCE) {
+          if((millis() - buttonPressedMillis) > BUTTON_DEBOUNCE) {
             volbyUzivatele[current_menu] -= 1;
-            buttonPressedMillis = millis();
           }
+          buttonPressedMillis = millis();
         }
 
         if(isPressedButton[2] == 1) { //tlacitko enter
-          if(millis() - buttonPressedMillis > BUTTON_DEBOUNCE) {
+          if((millis() - buttonPressedMillis) > BUTTON_DEBOUNCE) {
             if(current_menu == 50) {
               Serial.println("zabíjím session");
               amIFinished = true;
@@ -213,19 +218,18 @@ void loop() {
 
               http.sendRequest("POST", requestToSend);
               http.end();
-              buttonPressedMillis = millis();
             } else {
               current_menu += 1;
-              buttonPressedMillis = millis();
             }
           }
+          buttonPressedMillis = millis();
         }
 
         if(isPressedButton[3] == 1) { //tlacitko end
-          if(millis() - buttonPressedMillis > BUTTON_DEBOUNCE) {
+          if((millis() - buttonPressedMillis) > BUTTON_DEBOUNCE) {
             current_menu -= 1;
-            buttonPressedMillis = millis();
           }
+          buttonPressedMillis = millis();
         }
         Serial.print("cycle ");
         Serial.print(isPressedButton[2]);
