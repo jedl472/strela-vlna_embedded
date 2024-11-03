@@ -99,6 +99,8 @@ void setup() {
     delay(1);
   }
   if (debug) { Serial.println("Inicializace hotova"); }
+  display_u8g2.drawStr(0, 10, "Inicializace hotova");
+  display_u8g2.sendBuffer();
 }
 
 
