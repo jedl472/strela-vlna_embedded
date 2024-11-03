@@ -48,7 +48,7 @@ U8G2_ST7920_128X64_F_SW_SPI display_u8g2(U8G2_R0, display_clk, display_data, dis
 HTTPClient http;
 
 // TODO: proměné : awaitRequest, deviceState, pressedButon[3]
-bool isPressedButton[5] = {0, 0, 0, 0, 0};
+bool isPressedButton[5];
 
 #define BUTTON_DEBOUNCE 100
 
@@ -227,8 +227,9 @@ void loop() {
             buttonPressedMillis = millis();
           }
         }
-        Serial.println("cycle ");
-        Serial.print(String(current_menu).c_str());
+        Serial.print("cycle ");
+        Serial.print(isPressedButton[2])
+        Serial.println(String(current_menu).c_str());
       }
     }
 
@@ -241,5 +242,5 @@ void loop() {
 */
 // TODO fce: poslat GET, a zkontrolovat response code -> freeze do reconnectu - info na display. Jestli se v posledních 10 sec dělal request, skipnu check
 void updateButtons() {
-  bool isPressedButton[5] = {digitalRead(TL1),digitalRead(TL2),digitalRead(TL3),digitalRead(TL4),digitalRead(TL5)};  
+  isPressedButton[5] = {!digitalRead(TL1), !digitalRead(TL2), !digitalRead(TL3), !digitalRead(TL4), !digitalRead(TL5)};  
 }
