@@ -132,6 +132,10 @@ void loop() {
     }
     Serial.println(tagIdString);
 
+    display_u8g2.clear();
+    display_u8g2.drawStr(0, 10, "Tag nalezen");
+    display_u8g2.drawStr(0, 25, "Čekám na server");
+    display_u8g2.sendBuffer();
 
     http.begin(serverName.c_str()); // start session
 
