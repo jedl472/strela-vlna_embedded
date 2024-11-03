@@ -50,7 +50,7 @@ HTTPClient http;
 // TODO: proměné : awaitRequest, deviceState, pressedButon[3]
 bool isPressedButton[5] = {0, 0, 0, 0, 0};
 
-#define BUTTON_DEBOUNCE = 100
+#define BUTTON_DEBOUNCE 100
 
 /*
  ------------------------------------ Setup + loop --------------------------------------
@@ -146,8 +146,10 @@ void loop() {
       char* typUlohy = "0";
 
       // ------------------ sem přijde všechna magie s tlačítky a dynamickými requesty ------------------
+      uint8_t last_current_menu = 0;
       uint8_t current_menu = 0;
 
+      uint8_t last_volbyUzivatele[2] = {0, 0};
       uint8_t volbyUzivatele[2] = {0, 0};
 
       uint8_t buttonPressedMillis = 0;
@@ -158,47 +160,72 @@ void loop() {
         //A vykreslování zvolených hodnot na displej
         //taky posílání requestů
 
-        switch(current_menu) { /    /tento blok pouze vykresluje na display
-          case 0:
-            display_u8g2.drawStr(0, 10, "Nastavte typ akce: ");
-            display_u8g2.drawStr(0, 33, "_");
-            break;
-          case y:
-            display_u8g2.drawStr(0, 10, "Nastavte typ ulohy: ");
-            display_u8g2.drawStr(20, 33, "_");
-            break;
-          default:
-            break;
+        if(current_menu != last_current_menu) {
+          switch(current_menu) { //tento blok pouze vykresluje na display
+            case 0:
+              display_u8g2.drawStr(0, 10, "Nastavte typ akce: ");
+              display_u8g2.drawStr(0, 33, "_");
+              break;
+            case 1:
+              display_u8g2.drawStr(0, 10, "Nastavte typ ulohy: ");
+              display_u8g2.drawStr(20, 33, "_");
+              break;
+            default:
+              break;
+          }
+          last_current_menu = current_menu;
         }
-        display_u8g2.drawStr(0, 30, String(volbyUzivatele[current_menu]));
-        display_u8g2.drawStr(20, 30, String(volbyUzivatele[current_menu]));
+        
+        if(last_volbyUzivatele[current_menu] != volbyUzivatele[current_menu]) {
+          display_u8g2.drawStr(0, 30, String(volbyUzivatele[current_menu]).c_str());
+          display_u8g2.drawStr(20, 30, String(volbyUzivatele[current_menu]).c_str());
+
+          last_volbyUzivatele[current_menu] = volbyUzivatele[current_menu];
+        }
+        
 
 
         updateButtons(); //blok pro update tlačítek
 
         if(isPressedButton[0] == 1) { //tlačítko doprava       
-          if(Millis() - buttonPressedMillis > BUTTON_DEBOUNCE) {
+          if(millis() - buttonPressedMillis > BUTTON_DEBOUNCE) {
             volbyUzivatele[current_menu] += 1;
-            buttonPressedMillis = Millis();
+            buttonPressedMillis = millis();
           }
         } 
 
         if(isPressedButton[1] == 1) { //tlacitko doleva
-          if(Millis() - buttonPressedMillis > BUTTON_DEBOUNCE) {
+          if(millis() - buttonPressedMillis > BUTTON_DEBOUNCE) {
             volbyUzivatele[current_menu] -= 1;
-            buttonPressedMillis = Millis();
+            buttonPressedMillis = millis();
           }
         }
 
-        if(isPressedButton[3] == 1) { // tlacitko end
-          Serial.println("zabíjím session");
-          amIFinished = true;
+        if(isPressedButton[2] == 1) { //tlacitko enter
+          if(millis() - buttonPressedMillis > BUTTON_DEBOUNCE) {
+            if(current_menu == 1) {
+              Serial.println("zabíjím session");
+              amIFinished = true;
 
-          requestToSend = "end"; //todo send informace
+              char* requestToSend = "end"; //TODO send informace
 
-          http.sendRequest("POST", requestToSend);
-          http.end();
+              http.sendRequest("POST", requestToSend);
+              http.end();
+              buttonPressedMillis = millis();
+            } else {
+              current_menu += 1;
+              buttonPressedMillis = millis();
+            }
+          }
         }
+
+        if(isPressedButton[3] == 1) { //tlacitko end
+          if(millis() - buttonPressedMillis > BUTTON_DEBOUNCE) {
+            current_menu -= 1;
+            buttonPressedMillis = millis();
+          }
+        }
+
       }
     }
 
