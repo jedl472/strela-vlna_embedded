@@ -227,7 +227,8 @@ void loop() {
             buttonPressedMillis = millis();
           }
         }
-
+        Serial.println("cycle ");
+        Serial.print(String(current_menu).c_str());
       }
     }
 
