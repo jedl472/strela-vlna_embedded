@@ -146,7 +146,7 @@ void loop() {
       char* typUlohy = "0";
 
       // ------------------ sem přijde všechna magie s tlačítky a dynamickými requesty ------------------
-      uint8_t last_current_menu = 0;
+      uint8_t last_current_menu = -1;
       uint8_t current_menu = 0;
 
       uint8_t last_volbyUzivatele[2] = {0, 0};
