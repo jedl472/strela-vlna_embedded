@@ -16,11 +16,12 @@
 /*
   -------------------------------------- Nastavení ---------------------------------------
 */
+#define TL0 27
 #define TL1 32
 #define TL2 33
 #define TL3 25
 #define TL4 26
-#define TL5 27
+#define TL5 0 //zatím placeholder
 
 
 #define debug 1 // zatím jenom zapne UART
@@ -48,9 +49,67 @@ U8G2_ST7920_128X64_F_SW_SPI display_u8g2(U8G2_R0, display_clk, display_data, dis
 HTTPClient http;
 
 // TODO: proměné : awaitRequest, deviceState, pressedButon[3]
-bool isPressedButton[5];
 
 #define BUTTON_DEBOUNCE 50
+
+/*
+ ------------------------------------ Ostatní funkce ------------------------------------
+*/
+// TODO fce: poslat GET, a zkontrolovat response code -> freeze do reconnectu - info na display. Jestli se v posledních 10 sec dělal request, skipnu check
+void raw_updateButtons(bool *_input) { //tato funkce pouze přečte digital read (invertuje ho) a nastaví ho do vstupního listu
+  _input[0] = !digitalRead(TL0); //TODO zastřelit se
+  _input[1] = !digitalRead(TL1);
+  _input[2] = !digitalRead(TL2);
+  _input[3] = !digitalRead(TL3);
+  _input[4] = !digitalRead(TL4);
+  _input[5] = !digitalRead(TL5);
+}
+
+
+void updateParseInput(bool *_inputButtons, uint8_t *_output, unsigned long *buttonPressedMillis) { //čistě účelová funkce přímo pro parsování inputu z tlačítek pro menu. Je tu schovaný bordel jako debounce. existuje jenom kvůli větší modularitě
+  if(_inputButtons[0] == 1) { //tlačítko doprava       
+    if((millis() - *buttonPressedMillis) > BUTTON_DEBOUNCE) {
+      _output[0] += 1;
+    }
+    *buttonPressedMillis = millis();
+  }
+
+  if(_inputButtons[1] == 1) { //tlačítko doleva       
+    if((millis() - *buttonPressedMillis) > BUTTON_DEBOUNCE) {
+      _output[0] -= 1;
+    }
+    *buttonPressedMillis = millis();
+  }
+
+  if(_inputButtons[2] == 1) { //tlačítko nahoru       
+    if((millis() - *buttonPressedMillis) > BUTTON_DEBOUNCE) {
+      _output[1] += 1;
+    }
+    *buttonPressedMillis = millis();
+  }
+
+  if(_inputButtons[3] == 1) { //tlačítko dolu       
+    if((millis() - *buttonPressedMillis) > BUTTON_DEBOUNCE) {
+      _output[1] -= 1;
+    }
+    *buttonPressedMillis = millis();
+  }
+
+  if(_inputButtons[4] == 1) { //tlačítko enter       
+    if((millis() - *buttonPressedMillis) > BUTTON_DEBOUNCE) {
+      _output[2] += 1;
+    }
+    *buttonPressedMillis = millis();
+  }
+
+  if(_inputButtons[5] == 1) { //tlačítko esc       
+    if((millis() - *buttonPressedMillis) > BUTTON_DEBOUNCE) {
+      _output[2] -= 1;
+    }
+    *buttonPressedMillis = millis();
+  }
+}
+
 
 /*
  ------------------------------------ Setup + loop --------------------------------------
@@ -64,23 +123,22 @@ void setup() {
   if (debug) {
     Serial.begin(115200);
   }
+  pinMode(TL0,INPUT_PULLUP);
   pinMode(TL1,INPUT_PULLUP);
   pinMode(TL2,INPUT_PULLUP);
   pinMode(TL3,INPUT_PULLUP);
   pinMode(TL4,INPUT_PULLUP);
   pinMode(TL5,INPUT_PULLUP);
 
-
-
   //setup displeje, TODO: nechat vykreslit střela vlna startovací obrazovku
   if (debug) { Serial.println("Nastavuji display"); }
   display_u8g2.begin();
   display_u8g2.setFont(u8g2_font_ncenB08_tr); //tady se dá zkrouhnout místo, fonty zaberou dost paměti
 
+  
   display_u8g2.clear();
-  display_u8g2.drawStr(0, 10, "Inicializace displeje");
+  display_u8g2.drawStr(0, 10, "Inicializace periferii");
   display_u8g2.sendBuffer();
-
 
   //setup nfc
   nfc_pn532.begin();
@@ -166,23 +224,25 @@ void loop() {
       char* typUlohy = "0";
 
       // ------------------ sem přijde všechna magie s tlačítky a dynamickými requesty ------------------
-      uint8_t last_current_menu = -1;
-      uint8_t current_menu = 0;
+      unsigned long buttonPressedMillis = 0; // funkce vyuzivana updateParseInput kvuli debounce
 
-      uint8_t last_volbyUzivatele[2] = {0, 0};
-      uint8_t volbyUzivatele[2] = {0, 0};
+      uint8_t volbyUzivatele[2] = {0, 0}; //tato promena uklada volby uzivatele, nemeni se dynamicky jako volby_dynamicMenu
 
-      uint8_t buttonPressedMillis = 0;
+      uint8_t lastVolby_dynamicMenu[3] = {-1, -1, -1}; // tyto hodnoty aby se poprve vykreslil display, uklada předchozi stav volby_dynamicMenu aby se mohl updatova display
+      uint8_t volby_dynamicMenu[3] = {0, 0, 0}; //x(sipka doleva/doprava), y(sipka nahoru/dolu), potvrzení(enter/escape), meni se dynamicky funkci updateParseInput  DULEZITE: da se volne upravovat
+      bool jeStisknuteTlacitko[5]; // promena pasovaná do raw_updateButtons kam se ukladaji cista data z tlacitek (pouze kvuli modularite)
 
 
       while (!amIFinished) {
-        //TODO: Sem přijdou updaty tlačítek
-        //A vykreslování zvolených hodnot na displej
-        //taky posílání requestů
+        Serial.println(volby_dynamicMenu[0]);
+        Serial.print(volby_dynamicMenu[1]);
+        Serial.print(volby_dynamicMenu[2]);
 
-        if((current_menu != last_current_menu) || (last_volbyUzivatele[current_menu] != volbyUzivatele[current_menu])) {
+        if((volby_dynamicMenu[0] != lastVolby_dynamicMenu[0]) || (volby_dynamicMenu[1] != lastVolby_dynamicMenu[1])) {  //tento blok pouze vykresluje na display
+          if(lastVolby_dynamicMenu[0] != volby_dynamicMenu[0]) { volbyUzivatele[1] = 0; } //AKUTNE: vymyslet aby se nulovaly volby uzivatele pri prechazeni mezi menu (toto moc nefunguje)
+
           display_u8g2.clear();
-          switch(current_menu) { //tento blok pouze vykresluje na display
+          switch(volby_dynamicMenu[0]) { 
             case 0:
               display_u8g2.drawStr(0, 10, "Nastavte typ akce: ");
               display_u8g2.drawStr(0, 33, "_");
@@ -199,72 +259,35 @@ void loop() {
               break;
           }
           display_u8g2.sendBuffer();
-          last_current_menu = current_menu;
-          last_volbyUzivatele[current_menu] = volbyUzivatele[current_menu];
+          lastVolby_dynamicMenu[0] = volby_dynamicMenu[0];
+          lastVolby_dynamicMenu[1] = volby_dynamicMenu[1];
+          lastVolby_dynamicMenu[2] = volby_dynamicMenu[2];
+        } //konec bloku vzkreslujiciho na display
+
+
+        raw_updateButtons(&jeStisknuteTlacitko[0]); //blok pro update tlačítek
+        updateParseInput(&jeStisknuteTlacitko[0], &volby_dynamicMenu[0], &buttonPressedMillis);
+
+        if(volby_dynamicMenu[0] > 2) { volby_dynamicMenu[0] = 0; }
+        volbyUzivatele[volby_dynamicMenu[0]] = volby_dynamicMenu[1]; //updatuje volby uzivatele
+
+        if(volby_dynamicMenu[0] == 2) {
+          Serial.println("zabíjím session");
+          amIFinished = true;
+
+          char* requestToSend = "end"; //TODO send informace
+
+          http.sendRequest("POST", requestToSend);
+          http.end();
+
+          display_u8g2.clear();
+          display_u8g2.drawStr(0, 10, "Cekam na prilozeni tagu");
+          display_u8g2.sendBuffer();
         }
-
-
-        updateButtons(); //blok pro update tlačítek
-
-        if(isPressedButton[0] == 1) { //tlačítko doprava       
-          if((millis() - buttonPressedMillis) > BUTTON_DEBOUNCE) {
-            volbyUzivatele[current_menu] += 1;
-          }
-          buttonPressedMillis = millis();
-        } 
-
-        if(isPressedButton[1] == 1) { //tlacitko doleva
-          if((millis() - buttonPressedMillis) > BUTTON_DEBOUNCE) {
-            volbyUzivatele[current_menu] -= 1;
-          }
-          buttonPressedMillis = millis();
-        }
-
-        if(isPressedButton[2] == 1) { //tlacitko enter
-          if((millis() - buttonPressedMillis) > BUTTON_DEBOUNCE) {
-            if(current_menu == 1) {
-              Serial.println("zabíjím session");
-              amIFinished = true;
-
-              char* requestToSend = "end"; //TODO send informace
-
-              http.sendRequest("POST", requestToSend);
-              http.end();
-
-              display_u8g2.clear();
-              display_u8g2.drawStr(0, 10, "Cekam na prilozeni tagu");
-              display_u8g2.sendBuffer();
-            } else {
-              current_menu += 1;
-            }
-          }
-          buttonPressedMillis = millis();
-        }
-
-        if(isPressedButton[3] == 1) { //tlacitko end
-          if((millis() - buttonPressedMillis) > BUTTON_DEBOUNCE) {
-            if(current_menu != 0) { current_menu -= 1; }
-          }
-          buttonPressedMillis = millis();
-        }
-        Serial.print("cycle ");
-        Serial.print(isPressedButton[2]);
-        Serial.println(String(current_menu).c_str());
-      }
+      } //konec fce amIFinished
+      //sem přijde kod po ukončení session
     }
 
     delay(1000); 
   }
-}
-
-/*
- ------------------------------------ Ostatní funkce ------------------------------------
-*/
-// TODO fce: poslat GET, a zkontrolovat response code -> freeze do reconnectu - info na display. Jestli se v posledních 10 sec dělal request, skipnu check
-void updateButtons() {
-  isPressedButton[0] = !digitalRead(TL1); //TODO zastřelit se
-  isPressedButton[1] = !digitalRead(TL2);
-  isPressedButton[2] = !digitalRead(TL3);
-  isPressedButton[3] = !digitalRead(TL4);
-  isPressedButton[4] = !digitalRead(TL5);
 }
