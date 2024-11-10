@@ -13,6 +13,9 @@
 #include <WiFi.h>
 #include <HTTPClient.h>
 
+//utilita na parsování json
+#include <ArduinoJson.h>
+
 /*
   -------------------------------------- Nastavení ---------------------------------------
 */
@@ -21,7 +24,7 @@
 #define TL2 33
 #define TL3 25
 #define TL4 26
-#define TL5 0 //zatím placeholder
+#define TL5 14 //zatím placeholder
 
 
 #define debug 1 // zatím jenom zapne UART
@@ -32,7 +35,7 @@
 
 const char* wifi_ssid = "GAM2";
 const char* wifi_password = "JejTGame123+";
-String serverName = "http://192.168.22.222:80";
+String serverName = "http://192.168.22.7:80";
 
 /*
  --------------------------------- Globání proměnné -------------------------------------
@@ -53,63 +56,10 @@ HTTPClient http;
 #define BUTTON_DEBOUNCE 50
 
 /*
- ------------------------------------ Ostatní funkce ------------------------------------
+ ---------------------- Ostatní funkce dopoředná definice -------------------------------
 */
-// TODO fce: poslat GET, a zkontrolovat response code -> freeze do reconnectu - info na display. Jestli se v posledních 10 sec dělal request, skipnu check
-void raw_updateButtons(bool *_input) { //tato funkce pouze přečte digital read (invertuje ho) a nastaví ho do vstupního listu
-  _input[0] = !digitalRead(TL0); //TODO zastřelit se
-  _input[1] = !digitalRead(TL1);
-  _input[2] = !digitalRead(TL2);
-  _input[3] = !digitalRead(TL3);
-  _input[4] = !digitalRead(TL4);
-  _input[5] = !digitalRead(TL5);
-}
-
-
-void updateParseInput(bool *_inputButtons, uint8_t *_output, unsigned long *buttonPressedMillis) { //čistě účelová funkce přímo pro parsování inputu z tlačítek pro menu. Je tu schovaný bordel jako debounce. existuje jenom kvůli větší modularitě
-  if(_inputButtons[0] == 1) { //tlačítko doprava       
-    if((millis() - *buttonPressedMillis) > BUTTON_DEBOUNCE) {
-      _output[0] += 1;
-    }
-    *buttonPressedMillis = millis();
-  }
-
-  if(_inputButtons[1] == 1) { //tlačítko doleva       
-    if((millis() - *buttonPressedMillis) > BUTTON_DEBOUNCE) {
-      _output[0] -= 1;
-    }
-    *buttonPressedMillis = millis();
-  }
-
-  if(_inputButtons[2] == 1) { //tlačítko nahoru       
-    if((millis() - *buttonPressedMillis) > BUTTON_DEBOUNCE) {
-      _output[1] += 1;
-    }
-    *buttonPressedMillis = millis();
-  }
-
-  if(_inputButtons[3] == 1) { //tlačítko dolu       
-    if((millis() - *buttonPressedMillis) > BUTTON_DEBOUNCE) {
-      _output[1] -= 1;
-    }
-    *buttonPressedMillis = millis();
-  }
-
-  if(_inputButtons[4] == 1) { //tlačítko enter       
-    if((millis() - *buttonPressedMillis) > BUTTON_DEBOUNCE) {
-      _output[2] += 1;
-    }
-    *buttonPressedMillis = millis();
-  }
-
-  if(_inputButtons[5] == 1) { //tlačítko esc       
-    if((millis() - *buttonPressedMillis) > BUTTON_DEBOUNCE) {
-      _output[2] -= 1;
-    }
-    *buttonPressedMillis = millis();
-  }
-}
-
+void raw_updateButtons(bool *_input);
+void updateParseInput(bool *_inputButtons, uint8_t *_output, unsigned long *buttonPressedMillis);
 
 /*
  ------------------------------------ Setup + loop --------------------------------------
@@ -202,7 +152,15 @@ void loop() {
 
     http.begin(serverName.c_str()); // start session
 
-    int httpResponseCode = http.sendRequest("POST", String(tagIdString, HEX));
+    StaticJsonDocument<200> rawDataToSend;
+    rawDataToSend["typ"] = "overeni";
+    rawDataToSend["id"] = tagIdString;
+    String requestBody;
+    serializeJson(rawDataToSend, requestBody);
+
+    http.addHeader("Content-Type", "application/json");  
+    int httpResponseCode = http.POST(requestBody);
+
     if (httpResponseCode != 200) {
       Serial.println("Nepodařilo se navázat spojení se serverem");
     }
@@ -214,6 +172,7 @@ void loop() {
       display_u8g2.drawStr(0, 10, "Neznamy nfc tag");
       display_u8g2.drawStr(0, 25, "Cekam na prilozeni tagu");
       display_u8g2.sendBuffer();
+
       http.end();  // neexistuje špatný tag, prostě se odpojí
     } else { //pokud projde počáteční request, může začít operátor dělat jeho magii
       Serial.println("Stav účtu: ");  //debug
@@ -234,10 +193,6 @@ void loop() {
 
 
       while (!amIFinished) {
-        Serial.println(volby_dynamicMenu[0]);
-        Serial.print(volby_dynamicMenu[1]);
-        Serial.print(volby_dynamicMenu[2]);
-
         if((volby_dynamicMenu[0] != lastVolby_dynamicMenu[0]) || (volby_dynamicMenu[1] != lastVolby_dynamicMenu[1])) {  //tento blok pouze vykresluje na display
           if(lastVolby_dynamicMenu[0] != volby_dynamicMenu[0]) { volbyUzivatele[1] = 0; } //AKUTNE: vymyslet aby se nulovaly volby uzivatele pri prechazeni mezi menu (toto moc nefunguje)
 
@@ -272,12 +227,24 @@ void loop() {
         volbyUzivatele[volby_dynamicMenu[0]] = volby_dynamicMenu[1]; //updatuje volby uzivatele
 
         if(volby_dynamicMenu[0] == 2) {
-          Serial.println("zabíjím session");
+          display_u8g2.clear();
+          display_u8g2.drawStr(0, 10, "Posilam data....");
+          display_u8g2.sendBuffer();
+
           amIFinished = true;
+          StaticJsonDocument<200> rawDataToSend;
 
-          char* requestToSend = "end"; //TODO send informace
+          rawDataToSend["typ"] = "akce";
+          rawDataToSend["akce"] = String(volbyUzivatele[1]);
+          rawDataToSend["uloha"] = String(volbyUzivatele[0]);
+          rawDataToSend["id"] = tagIdString;
 
-          http.sendRequest("POST", requestToSend);
+          String requestBody;
+          serializeJson(rawDataToSend, requestBody);
+
+          http.addHeader("Content-Type", "application/json");     
+
+          http.POST(requestBody);
           http.end();
 
           display_u8g2.clear();
@@ -289,5 +256,60 @@ void loop() {
     }
 
     delay(1000); 
+  }
+  Serial.println("alive check");
+}
+
+void raw_updateButtons(bool *_input) { //tato funkce pouze přečte digital read (invertuje ho) a nastaví ho do vstupního listu
+  _input[0] = !digitalRead(TL0); //TODO zastřelit se
+  _input[1] = !digitalRead(TL1);
+  _input[2] = !digitalRead(TL2);
+  _input[3] = !digitalRead(TL3);
+  _input[4] = !digitalRead(TL4);
+  _input[5] = !digitalRead(TL5);
+}
+
+
+void updateParseInput(bool *_inputButtons, uint8_t *_output, unsigned long *buttonPressedMillis) { //čistě účelová funkce přímo pro parsování inputu z tlačítek pro menu. Je tu schovaný bordel jako debounce. existuje jenom kvůli větší modularitě
+  if(_inputButtons[0] == 1) { //tlačítko doprava       
+    if((millis() - *buttonPressedMillis) > BUTTON_DEBOUNCE) {
+      _output[0] += 1;
+    }
+    *buttonPressedMillis = millis();
+  }
+
+  if(_inputButtons[1] == 1) { //tlačítko doleva       
+    if((millis() - *buttonPressedMillis) > BUTTON_DEBOUNCE) {
+      _output[0] -= 1;
+    }
+    *buttonPressedMillis = millis();
+  }
+
+  if(_inputButtons[2] == 1) { //tlačítko nahoru       
+    if((millis() - *buttonPressedMillis) > BUTTON_DEBOUNCE) {
+      _output[1] += 1;
+    }
+    *buttonPressedMillis = millis();
+  }
+
+  if(_inputButtons[3] == 1) { //tlačítko dolu       
+    if((millis() - *buttonPressedMillis) > BUTTON_DEBOUNCE) {
+      _output[1] -= 1;
+    }
+    *buttonPressedMillis = millis();
+  }
+
+  if(_inputButtons[4] == 1) { //tlačítko enter       
+    if((millis() - *buttonPressedMillis) > BUTTON_DEBOUNCE) {
+      _output[2] += 1;
+    }
+    *buttonPressedMillis = millis();
+  }
+
+  if(_inputButtons[5] == 1) { //tlačítko esc       
+    if((millis() - *buttonPressedMillis) > BUTTON_DEBOUNCE) {
+      _output[2] -= 1;
+    }
+    *buttonPressedMillis = millis();
   }
 }

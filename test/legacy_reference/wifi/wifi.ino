@@ -17,7 +17,7 @@ const char* ssid = "GAM2";
 const char* password = "JejTGame123+";
 
 //Your Domain name with URL path or IP address with path
-String serverName = "http://192.168.22.222:80";
+String serverName = "http://192.168.22.7:80";
 
 // the following variables are unsigned longs because the time, measured in
 // milliseconds, will quickly become a bigger number than can be stored in an int.
