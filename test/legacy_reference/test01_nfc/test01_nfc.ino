@@ -16,6 +16,9 @@ PN532 nfc(pn532i2c);
 void setup() {
   u8g2.begin();
   u8g2.setFont(u8g2_font_ncenB08_tr);
+  u8g2.drawStr(0, 10, "Ahoj svete");
+  u8g2.sendBuffer();
+
 
   Serial.begin(115200);
   // zahájení komunikace s NFC modulem

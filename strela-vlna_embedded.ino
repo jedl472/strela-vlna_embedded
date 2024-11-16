@@ -19,12 +19,12 @@
 /*
   -------------------------------------- Nastavení ---------------------------------------
 */
-#define TL0 27
-#define TL1 32
-#define TL2 33
-#define TL3 25
-#define TL4 26
-#define TL5 14 //zatím placeholder
+#define TL0 27  //doprava
+#define TL1 26  //doleva
+#define TL2 14  //nahoru
+#define TL3 33  //dolu
+#define TL4 32  //enter
+#define TL5 25  //esc
 
 
 #define debug 1 // zatím jenom zapne UART
@@ -85,7 +85,6 @@ void setup() {
   display_u8g2.begin();
   display_u8g2.setFont(u8g2_font_ncenB08_tr); //tady se dá zkrouhnout místo, fonty zaberou dost paměti
 
-  
   display_u8g2.clear();
   display_u8g2.drawStr(0, 10, "Inicializace periferii");
   display_u8g2.sendBuffer();
@@ -94,9 +93,18 @@ void setup() {
   nfc_pn532.begin();
   uint32_t versiondata = nfc_pn532.getFirmwareVersion(); // uložení verze desky pro kontrolu jejího připojení
   if (!versiondata) {  //pokud nenajde čtečku, zastaví program
-    if (debug) { Serial.println("Nebyl nalezen PN53x modul!"); } //TODO: nechat kreslit na display
-    while (1);
+    display_u8g2.clear();
+    display_u8g2.drawStr(0, 10, "NFC nenalezeno");
+    display_u8g2.drawStr(0, 20, "zkousim znovu");
+    display_u8g2.sendBuffer();
+    if (debug) { Serial.println("Nebyl nalezen PN53x modul!"); }
+    while (true) {
+      nfc_pn532.begin();
+      uint32_t versiondata = nfc_pn532.getFirmwareVersion();
+      if (versiondata) { break; }
+    }
   }
+
   nfc_pn532.setPassiveActivationRetries(0xFF); // nastavení maximálního počtu pokusů o čtení NFC tagu, odpovídá cca jedné sekundě
   nfc_pn532.SAMConfig(); // konfigurace NFC modulu pro čtení tagů
 
@@ -191,16 +199,17 @@ void loop() {
       uint8_t volby_dynamicMenu[3] = {0, 0, 0}; //x(sipka doleva/doprava), y(sipka nahoru/dolu), potvrzení(enter/escape), meni se dynamicky funkci updateParseInput  DULEZITE: da se volne upravovat
       bool jeStisknuteTlacitko[5]; // promena pasovaná do raw_updateButtons kam se ukladaji cista data z tlacitek (pouze kvuli modularite)
 
-
+      display_u8g2.clear();
       while (!amIFinished) {
-        if((volby_dynamicMenu[0] != lastVolby_dynamicMenu[0]) || (volby_dynamicMenu[1] != lastVolby_dynamicMenu[1])) {  //tento blok pouze vykresluje na display
+        if((volby_dynamicMenu[0] != lastVolby_dynamicMenu[0]) || (volby_dynamicMenu[1] != lastVolby_dynamicMenu[1])) {  //tento blok pouze vykresluje na display TODO: udelat hezci
           if(lastVolby_dynamicMenu[0] != volby_dynamicMenu[0]) { volbyUzivatele[1] = 0; } //AKUTNE: vymyslet aby se nulovaly volby uzivatele pri prechazeni mezi menu (toto moc nefunguje)
 
           display_u8g2.clear();
+
           switch(volby_dynamicMenu[0]) { 
             case 0:
               display_u8g2.drawStr(0, 10, "Nastavte typ akce: ");
-              display_u8g2.drawStr(0, 33, "_");
+              display_u8g2.drawStr(0, 32, "_");
               display_u8g2.drawStr(0, 30, String(volbyUzivatele[0]).c_str());
               display_u8g2.drawStr(20, 30, String(volbyUzivatele[1]).c_str());
               break;
@@ -217,7 +226,7 @@ void loop() {
           lastVolby_dynamicMenu[0] = volby_dynamicMenu[0];
           lastVolby_dynamicMenu[1] = volby_dynamicMenu[1];
           lastVolby_dynamicMenu[2] = volby_dynamicMenu[2];
-        } //konec bloku vzkreslujiciho na display
+        } //konec bloku vzkreslujiciho na display 
 
 
         raw_updateButtons(&jeStisknuteTlacitko[0]); //blok pro update tlačítek
