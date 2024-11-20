@@ -1,73 +1,35 @@
-#include <U8glib.h>
+#include <U8g2lib.h>
+#include <SPI.h>
 
-// nastavení propojovacích pinů
-#define EN 18
-#define RW 19
-#define RS 23
+U8G2_ST7920_128X64_F_SW_SPI u8g2(U8G2_R0, /* clock=*/ 18 /* A4 */ , /* data=*/ 23 /* A2 */, /* CS=*/ 5 /* A3 */, /* reset=*/ U8X8_PIN_NONE);
 
-// inicializace OLED displeje z knihovny U8glib
-U8GLIB_ST7920_128X64_1X lcd(EN, RW, RS);
 
-// proměnná pro uchování času poslední obnovy displeje
-long int prepis = 0;
+void setup() {
+  u8g2.begin();
+  u8g2.setFont(u8g2_font_ncenB08_tr);
+  u8g2.drawStr(0, 40, "bottom text");
+  u8g2.sendBuffer();
 
-void setup(void) {
-  // nastavení bílé barvy pro výpis
-  if ( lcd.getMode() == U8G_MODE_R3G3B2 ) {
-    lcd.setColorIndex(255);
-  }
-  // nastavení maximální intenzity svitu
-  else if ( lcd.getMode() == U8G_MODE_GRAY2BIT ) {
-    lcd.setColorIndex(3);
-  }
-  // nastavení viditelnosti pixelů
-  else if ( lcd.getMode() == U8G_MODE_BW ) {
-    lcd.setColorIndex(1);
-  }
-  // pro otočení displeje o 180 stupňů
-  // stačí odkomentovat řádek níže
-  // lcd.setRot180();
+
+
+
+  Serial.begin(115200);
 }
 
-void loop(void) {
-  // porovnání uloženého a aktuálního času,
-  // při rozdílu větším než 100 ms se provede
-  // obnovení displeje, čas můžeme nastavit dle potřeby
-  if (millis()-prepis > 100) {
-    // následující skupina příkazů
-    // obnoví obsah OLED displeje
-    lcd.firstPage();
-    do {
-      // funkce vykresli vykreslí žádanou obsah
-      vykresli();
-    } while( lcd.nextPage() );
-    // uložení posledního času obnovení
-    prepis = millis();
-  }
+void loop() {
+  u8g2.clearBuffer();
+  //u8g2.setCursor(0, 10);
+  u8g2.drawStr(0, 10, "ahoj svete");
+  u8g2.drawStr(0, 40, "bottom text");
+  u8g2.sendBuffer();
+
+  delay(1000);
+
+  u8g2.clearBuffer();
+  //u8g2.setCursor(64, 10);
+  u8g2.drawStr(64, 10, "tady ctecka");
+  u8g2.drawStr(0, 40, "bottom text");
+  u8g2.sendBuffer();
   
-  // zde je místo pro další příkazy pro Arduino
-  
-  // volitelná pauza 10 ms pro demonstraci
-  // vykonání dalších příkazů
-  delay(10);
-}
-// funkce vykresli pro nastavení výpisu informací na OLED
-void vykresli(void) {
-  // nastavení písma, toto písmo umožní vypsat
-  // přibližně 15x4 znaků
-  lcd.setFont(u8g_font_unifont);
-  // nastavení pozice výpisu v pixelech
-  // souřadnice jsou ve tvaru x, y
-  // souřadnice 0, 0 je v levém horní rohu
-  // OLED displeje, maximum je 128, 64
-  lcd.setPrintPos(0, 10);
-  // výpis textu na zadanou souřadnici
-  lcd.print("Arduino navody");
-  lcd.setPrintPos(0, 25);
-  lcd.print("dratek.cz");
-  lcd.setPrintPos(0, 40);
-  lcd.print("Cas od zapnuti:");
-  lcd.setPrintPos(40, 55);
-  lcd.print(millis()/1000);
-  lcd.print(" vterin");
+  delay(1000);
 }

@@ -51,8 +51,6 @@ U8G2_ST7920_128X64_F_SW_SPI display_u8g2(U8G2_R0, display_clk, display_data, dis
 // http 
 HTTPClient http;
 
-// TODO: proměné : awaitRequest, deviceState, pressedButon[3]
-
 #define BUTTON_DEBOUNCE 50
 
 /*
@@ -160,107 +158,118 @@ void loop() {
 
     http.begin(serverName.c_str()); // start session
 
-    StaticJsonDocument<200> rawDataToSend;
-    rawDataToSend["typ"] = "overeni";
-    rawDataToSend["id"] = tagIdString;
     String requestBody;
-    serializeJson(rawDataToSend, requestBody);
+
+    {
+      StaticJsonDocument<200> jsonContainer;
+      jsonContainer["typ"] = "overeni";
+      jsonContainer["id"] = tagIdString;
+      serializeJson(jsonContainer, requestBody);
+    }
 
     http.addHeader("Content-Type", "application/json");  
     int httpResponseCode = http.POST(requestBody);
 
     if (httpResponseCode != 200) {
-      Serial.println("Nepodařilo se navázat spojení se serverem");
-    }
-    String payload = http.getString();
-
-    if(payload == "n") {  //struktura requestů popsaná v souboru format-komunikace.txt
-      Serial.println("Neznámý nfc tag"); 
       display_u8g2.clear();
-      display_u8g2.drawStr(0, 10, "Neznamy nfc tag");
-      display_u8g2.drawStr(0, 25, "Cekam na prilozeni tagu");
+      display_u8g2.drawStr(0, 10, "Server neodpovida");
+      display_u8g2.drawStr(0, 20, "Cekam na prilozeni tagu");
       display_u8g2.sendBuffer();
+    } else {
+      String response_payload = http.getString();
 
-      http.end();  // neexistuje špatný tag, prostě se odpojí
-    } else { //pokud projde počáteční request, může začít operátor dělat jeho magii
-      Serial.println("Stav účtu: ");  //debug
-      Serial.print(payload);
-
-      bool amIFinished = false;
       
-      char* typUlohy = "0";
 
-      // ------------------ sem přijde všechna magie s tlačítky a dynamickými requesty ------------------
-      unsigned long buttonPressedMillis = 0; // funkce vyuzivana updateParseInput kvuli debounce
+      if(response_payload == "n") {  //struktura requestů popsaná v souboru format-komunikace.txt
+        Serial.println("Neznámý nfc tag"); 
+        display_u8g2.clear();
+        display_u8g2.drawStr(0, 10, "Neznamy nfc tag");
+        display_u8g2.drawStr(0, 25, "Cekam na prilozeni tagu");
+        display_u8g2.sendBuffer();
 
-      uint8_t volbyUzivatele[2] = {0, 0}; //tato promena uklada volby uzivatele, nemeni se dynamicky jako volby_dynamicMenu
+        http.end();  // neexistuje špatný tag, prostě se odpojí
+      } else { //pokud projde počáteční request, může začít operátor dělat jeho magii
+        Serial.println("Stav účtu: ");  //debug
+        Serial.print(response_payload);
 
-      uint8_t lastVolby_dynamicMenu[3] = {-1, -1, -1}; // tyto hodnoty aby se poprve vykreslil display, uklada předchozi stav volby_dynamicMenu aby se mohl updatova display
-      uint8_t volby_dynamicMenu[3] = {0, 0, 0}; //x(sipka doleva/doprava), y(sipka nahoru/dolu), potvrzení(enter/escape), meni se dynamicky funkci updateParseInput  DULEZITE: da se volne upravovat
-      bool jeStisknuteTlacitko[5]; // promena pasovaná do raw_updateButtons kam se ukladaji cista data z tlacitek (pouze kvuli modularite)
+        bool amIFinished = false;
+        
+        char* typUlohy = "0";
 
-      display_u8g2.clear();
-      while (!amIFinished) {
-        if((volby_dynamicMenu[0] != lastVolby_dynamicMenu[0]) || (volby_dynamicMenu[1] != lastVolby_dynamicMenu[1])) {  //tento blok pouze vykresluje na display TODO: udelat hezci
-          if(lastVolby_dynamicMenu[0] != volby_dynamicMenu[0]) { volbyUzivatele[1] = 0; } //AKUTNE: vymyslet aby se nulovaly volby uzivatele pri prechazeni mezi menu (toto moc nefunguje)
+        // ------------------ sem přijde všechna magie s tlačítky a dynamickými requesty ------------------
+        unsigned long buttonPressedMillis = 0; // funkce vyuzivana updateParseInput kvuli debounce
 
-          display_u8g2.clear();
+        uint8_t volbyUzivatele[2] = {0, 0}; //tato promena uklada volby uzivatele, nemeni se dynamicky jako volby_dynamicMenu
 
-          switch(volby_dynamicMenu[0]) { 
-            case 0:
-              display_u8g2.drawStr(0, 10, "Nastavte typ akce: ");
-              display_u8g2.drawStr(0, 32, "_");
-              display_u8g2.drawStr(0, 30, String(volbyUzivatele[0]).c_str());
-              display_u8g2.drawStr(20, 30, String(volbyUzivatele[1]).c_str());
-              break;
-            case 1:
-              display_u8g2.drawStr(0, 10, "Nastavte typ ulohy: ");
-              display_u8g2.drawStr(20, 33, "_");
-              display_u8g2.drawStr(0, 30, String(volbyUzivatele[0]).c_str());
-              display_u8g2.drawStr(20, 30, String(volbyUzivatele[1]).c_str());
-              break;
-            default:
-              break;
+        uint8_t lastVolby_dynamicMenu[3] = {-1, -1, -1}; // tyto hodnoty aby se poprve vykreslil display, uklada předchozi stav volby_dynamicMenu aby se mohl updatova display
+        uint8_t volby_dynamicMenu[3] = {0, 0, 0}; //x(sipka doleva/doprava), y(sipka nahoru/dolu), potvrzení(enter/escape), meni se dynamicky funkci updateParseInput  DULEZITE: da se volne upravovat
+        bool jeStisknuteTlacitko[5]; // promena pasovaná do raw_updateButtons kam se ukladaji cista data z tlacitek (pouze kvuli modularite)
+
+        display_u8g2.clear();
+        while (!amIFinished) {
+          if((volby_dynamicMenu[0] != lastVolby_dynamicMenu[0]) || (volby_dynamicMenu[1] != lastVolby_dynamicMenu[1])) {  //tento blok pouze vykresluje na display TODO: udelat hezci
+            if(lastVolby_dynamicMenu[0] != volby_dynamicMenu[0]) { volbyUzivatele[1] = 0; } //AKUTNE: vymyslet aby se nulovaly volby uzivatele pri prechazeni mezi menu (toto moc nefunguje)
+
+            display_u8g2.clear();
+
+            switch(volby_dynamicMenu[0]) { 
+              case 0:
+                display_u8g2.drawStr(0, 10, "Nastavte typ akce: ");
+                display_u8g2.drawStr(0, 32, "_");
+                display_u8g2.drawStr(0, 30, String(volbyUzivatele[0]).c_str());
+                display_u8g2.drawStr(20, 30, String(volbyUzivatele[1]).c_str());
+                break;
+              case 1:
+                display_u8g2.drawStr(0, 10, "Nastavte typ ulohy: ");
+                display_u8g2.drawStr(20, 33, "_");
+                display_u8g2.drawStr(0, 30, String(volbyUzivatele[0]).c_str());
+                display_u8g2.drawStr(20, 30, String(volbyUzivatele[1]).c_str());
+                break;
+              default:
+                break;
+            }
+            display_u8g2.sendBuffer();
+            lastVolby_dynamicMenu[0] = volby_dynamicMenu[0];
+            lastVolby_dynamicMenu[1] = volby_dynamicMenu[1];
+            lastVolby_dynamicMenu[2] = volby_dynamicMenu[2];
+          } //konec bloku vzkreslujiciho na display 
+
+
+          raw_updateButtons(&jeStisknuteTlacitko[0]); //blok pro update tlačítek
+          updateParseInput(&jeStisknuteTlacitko[0], &volby_dynamicMenu[0], &buttonPressedMillis);
+
+          if(volby_dynamicMenu[0] > 2) { volby_dynamicMenu[0] = 0; }
+          volbyUzivatele[volby_dynamicMenu[0]] = volby_dynamicMenu[1]; //updatuje volby uzivatele
+
+          if(volby_dynamicMenu[0] == 2) {
+            display_u8g2.clear();
+            display_u8g2.drawStr(0, 10, "Posilam data....");
+            display_u8g2.sendBuffer();
+
+            amIFinished = true;
+
+            String requestBody;
+            {
+              StaticJsonDocument<200> jsonContainer;
+              jsonContainer["typ"] = "akce";
+              jsonContainer["akce"] = String(volbyUzivatele[1]);
+              jsonContainer["uloha"] = String(volbyUzivatele[0]);
+              jsonContainer["id"] = tagIdString;
+              
+              serializeJson(jsonContainer, requestBody);
+            }
+            
+            http.addHeader("Content-Type", "application/json");     
+
+            http.POST(requestBody);
+            http.end();
+
+            display_u8g2.clear();
+            display_u8g2.drawStr(0, 10, "Cekam na prilozeni tagu");
+            display_u8g2.sendBuffer();
           }
-          display_u8g2.sendBuffer();
-          lastVolby_dynamicMenu[0] = volby_dynamicMenu[0];
-          lastVolby_dynamicMenu[1] = volby_dynamicMenu[1];
-          lastVolby_dynamicMenu[2] = volby_dynamicMenu[2];
-        } //konec bloku vzkreslujiciho na display 
-
-
-        raw_updateButtons(&jeStisknuteTlacitko[0]); //blok pro update tlačítek
-        updateParseInput(&jeStisknuteTlacitko[0], &volby_dynamicMenu[0], &buttonPressedMillis);
-
-        if(volby_dynamicMenu[0] > 2) { volby_dynamicMenu[0] = 0; }
-        volbyUzivatele[volby_dynamicMenu[0]] = volby_dynamicMenu[1]; //updatuje volby uzivatele
-
-        if(volby_dynamicMenu[0] == 2) {
-          display_u8g2.clear();
-          display_u8g2.drawStr(0, 10, "Posilam data....");
-          display_u8g2.sendBuffer();
-
-          amIFinished = true;
-          StaticJsonDocument<200> rawDataToSend;
-
-          rawDataToSend["typ"] = "akce";
-          rawDataToSend["akce"] = String(volbyUzivatele[1]);
-          rawDataToSend["uloha"] = String(volbyUzivatele[0]);
-          rawDataToSend["id"] = tagIdString;
-
-          String requestBody;
-          serializeJson(rawDataToSend, requestBody);
-
-          http.addHeader("Content-Type", "application/json");     
-
-          http.POST(requestBody);
-          http.end();
-
-          display_u8g2.clear();
-          display_u8g2.drawStr(0, 10, "Cekam na prilozeni tagu");
-          display_u8g2.sendBuffer();
-        }
-      } //konec fce amIFinished
+        } //konec fce amIFinished
+      }
       //sem přijde kod po ukončení session
     }
 
