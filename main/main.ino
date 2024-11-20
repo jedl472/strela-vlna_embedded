@@ -1,8 +1,11 @@
 // ---------------------------------------- Knihovny ---------------------------------------
-
-// knihovny pro display, musí být importovány před knihovnamy pro nfc, jinak se program nezkompiluje
-#include <U8g2lib.h>
+#include <U8g2lib.h> //docasne, pak prijde do vlastniho modulu
 #include <SPI.h>
+#include "bmp.h"
+
+//vlastni moduly (jsou zde i knihovny pro display, musí být importovány před knihovnamy pro nfc, jinak se program nezkompiluje)
+#include "input.h"
+#include "display.h"
 
 // knihovny pro čtečku nfc
 #include <PN532_I2C.h>
@@ -16,13 +19,10 @@
 //utilita na parsování json
 #include <ArduinoJson.h>
 
-//vlastni moduly
-#include "input.h"
-
 /*
   -------------------------------------- Nastavení ---------------------------------------
 */
-#define debug 1 // zatím jenom zapne UART
+#define debug 1
 
 #define display_clk 18   // Clock: RS   (označení pinů na samotné desce displeje)
 #define display_data 23  // Data:  PW
@@ -52,14 +52,11 @@ HTTPClient http;
 
 void setup() {
   inputSetup();
-
-
   //setup věcí pro debug, zatím v podstatě placeholder a WIP
   if (debug) {
     Serial.begin(115200);
     Serial.println("system startuje");
   }
-  
 
   //setup displeje, TODO: nechat vykreslit střela vlna startovací obrazovku
   if (debug) { Serial.println("Nastavuji display"); }
@@ -96,7 +93,18 @@ void setup() {
   while(WiFi.status() != WL_CONNECTED) { // zastaví program dokud se nepřipojí k wifi
     delay(1);
   }
+
   if (debug) { Serial.println("Inicializace hotova"); }
+
+
+  
+  display_u8g2.clear();   //TODO tenhle test bitmapy zatim nefunguje
+  display_u8g2.setDrawColor(1);
+  display_u8g2.setBitmapMode(0);
+  display_u8g2.drawXBMP(10, 10, 40, 20, epd_bitmap_logo1);
+  delay(2000);
+
+
 
   display_u8g2.clear();
   display_u8g2.drawStr(0, 10, "Inicializace hotova");

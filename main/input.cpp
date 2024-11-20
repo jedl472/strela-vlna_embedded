@@ -19,7 +19,7 @@ void inputSetup() {
 }
 
 
-void updateParseInput(bool *_inputButtons, uint8_t *_output, unsigned long *buttonPressedMillis) { //čistě účelová funkce přímo pro parsování inputu z tlačítek pro menu. Je tu schovaný bordel jako debounce. existuje jenom kvůli větší modularitě
+void updateParseInput(bool *_inputButtons, uint8_t *_output, unsigned long *buttonPressedMillis) { 
   if(_inputButtons[0] == 1) { //tlačítko doprava       
     if((millis() - *buttonPressedMillis) > BUTTON_DEBOUNCE) {
       _output[0] += 1;
