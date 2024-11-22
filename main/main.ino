@@ -99,9 +99,8 @@ void setup() {
 
   
   display_u8g2.clear();   //TODO tenhle test bitmapy zatim nefunguje
-  display_u8g2.setDrawColor(1);
-  display_u8g2.setBitmapMode(0);
-  display_u8g2.drawXBMP(10, 10, 40, 20, epd_bitmap_logo1);
+  display_u8g2.drawXBMP(0, 0, 128, 64, bmp_strela_vlna_logo);
+  display_u8g2.sendBuffer();
   delay(2000);
 
 
