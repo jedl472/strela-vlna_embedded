@@ -24,10 +24,6 @@
 */
 #define debug 1
 
-#define display_clk 18   // Clock: RS   (označení pinů na samotné desce displeje)
-#define display_data 23  // Data:  PW
-#define display_cs 5     // CS:    E
-
 const char* wifi_ssid = "GAM2";
 const char* wifi_password = "JejTGame123+";
 String serverName = "http://192.168.22.7:80";
