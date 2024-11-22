@@ -40,9 +40,6 @@ String serverName = "http://192.168.22.7:80";
 PN532_I2C pn532i2c(Wire);
 PN532 nfc_pn532(pn532i2c);
 
-// display
-U8G2_ST7920_128X64_F_SW_SPI display_u8g2(U8G2_R0, display_clk, display_data, display_cs, /* reset=*/ U8X8_PIN_NONE); // TODO: zjistit co znamená U8X8_PIN_NONE a jestli je potřeba připojit reset pin (RST)
-
 // http 
 HTTPClient http;
 
@@ -60,21 +57,17 @@ void setup() {
 
   //setup displeje, TODO: nechat vykreslit střela vlna startovací obrazovku
   if (debug) { Serial.println("Nastavuji display"); }
-  display_u8g2.begin();
-  display_u8g2.setFont(u8g2_font_ncenB08_tr); //tady se dá zkrouhnout místo, fonty zaberou dost paměti
+  
+  init_display()
 
-  display_u8g2.clear();
-  display_u8g2.drawStr(0, 10, "Inicializace periferii");
-  display_u8g2.sendBuffer();
+  display_text("inicializace periferii");
 
   //setup nfc
   nfc_pn532.begin();
   uint32_t versiondata = nfc_pn532.getFirmwareVersion(); // uložení verze desky pro kontrolu jejího připojení
-  if (!versiondata) {  //pokud nenajde čtečku, zastaví program
-    display_u8g2.clear();
-    display_u8g2.drawStr(0, 10, "NFC nenalezeno");
-    display_u8g2.drawStr(0, 20, "zkousim znovu");
-    display_u8g2.sendBuffer();
+  if (!versiondata) {  //pokud nenajde čtečku, zastaví program;
+    display_text("NFC nenalezeno");
+    
     if (debug) { Serial.println("Nebyl nalezen PN53x modul!"); }
     while (true) {
       nfc_pn532.begin();
@@ -98,17 +91,7 @@ void setup() {
 
 
   
-  display_u8g2.clear();   //TODO tenhle test bitmapy zatim nefunguje
-  display_u8g2.drawXBMP(0, 0, 128, 64, bmp_strela_vlna_logo);
-  display_u8g2.sendBuffer();
-  delay(2000);
-
-
-
-  display_u8g2.clear();
-  display_u8g2.drawStr(0, 10, "Inicializace hotova");
-  display_u8g2.drawStr(0, 25, "Cekam na prilozeni tagu");
-  display_u8g2.sendBuffer();
+  display_text("inicializace hotova");
 }
 
 
@@ -141,10 +124,7 @@ void loop() {
     }
     Serial.println(tagIdString);
 
-    display_u8g2.clear();
-    display_u8g2.drawStr(0, 10, "Tag nalezen");
-    display_u8g2.drawStr(0, 25, "Cekam na server");
-    display_u8g2.sendBuffer();
+    display_text("cekam na server");
 
     http.begin(serverName.c_str()); // start session
 
@@ -161,19 +141,12 @@ void loop() {
     int httpResponseCode = http.POST(requestBody);
 
     if (httpResponseCode != 200) {
-      display_u8g2.clear();
-      display_u8g2.drawStr(0, 10, "Server neodpovida");
-      display_u8g2.drawStr(0, 20, "Cekam na prilozeni tagu");
-      display_u8g2.sendBuffer();
+      display_text("server neodpovida");
     } else {
       String response_payload = http.getString();
 
       if(response_payload == "n") {  //struktura requestů popsaná v souboru format-komunikace.txt
-        Serial.println("Neznámý nfc tag"); 
-        display_u8g2.clear();
-        display_u8g2.drawStr(0, 10, "Neznamy nfc tag");
-        display_u8g2.drawStr(0, 25, "Cekam na prilozeni tagu");
-        display_u8g2.sendBuffer();
+        display_text("neznamy tag");
 
         http.end();  // neexistuje špatný tag, prostě se odpojí
       } else { //pokud projde počáteční request, může začít operátor dělat jeho magii
@@ -199,26 +172,8 @@ void loop() {
         while (!amIFinished) {
           if((volby_dynamicMenu[0] != lastVolby_dynamicMenu[0]) || (volby_dynamicMenu[1] != lastVolby_dynamicMenu[1])) {  //tento blok pouze vykresluje na display TODO: udelat hezci
             if(lastVolby_dynamicMenu[0] != volby_dynamicMenu[0]) { volbyUzivatele[1] = 0; } //AKUTNE: vymyslet aby se nulovaly volby uzivatele pri prechazeni mezi menu (toto moc nefunguje)
+            display_volby(&volby_dynamicMenu[0], &volbyUzivatele[0]);
 
-            display_u8g2.clear();
-
-            switch(volby_dynamicMenu[0]) { 
-              case 0:
-                display_u8g2.drawStr(0, 10, "Nastavte typ akce: ");
-                display_u8g2.drawStr(0, 32, "_");
-                display_u8g2.drawStr(0, 30, String(volbyUzivatele[0]).c_str());
-                display_u8g2.drawStr(20, 30, String(volbyUzivatele[1]).c_str());
-                break;
-              case 1:
-                display_u8g2.drawStr(0, 10, "Nastavte typ ulohy: ");
-                display_u8g2.drawStr(20, 33, "_");
-                display_u8g2.drawStr(0, 30, String(volbyUzivatele[0]).c_str());
-                display_u8g2.drawStr(20, 30, String(volbyUzivatele[1]).c_str());
-                break;
-              default:
-                break;
-            }
-            display_u8g2.sendBuffer();
             lastVolby_dynamicMenu[0] = volby_dynamicMenu[0];
             lastVolby_dynamicMenu[1] = volby_dynamicMenu[1];
             lastVolby_dynamicMenu[2] = volby_dynamicMenu[2];
@@ -232,9 +187,7 @@ void loop() {
           volbyUzivatele[volby_dynamicMenu[0]] = volby_dynamicMenu[1]; //updatuje volby uzivatele
 
           if(volby_dynamicMenu[0] == 2) {
-            display_u8g2.clear();
-            display_u8g2.drawStr(0, 10, "Posilam data....");
-            display_u8g2.sendBuffer();
+            display_text("posilam data");
 
             amIFinished = true;
 
@@ -254,9 +207,7 @@ void loop() {
             http.POST(requestBody);
             http.end();
 
-            display_u8g2.clear();
-            display_u8g2.drawStr(0, 10, "Cekam na prilozeni tagu");
-            display_u8g2.sendBuffer();
+            display_text("hotovo");
           }
         } //konec fce amIFinished
       }
