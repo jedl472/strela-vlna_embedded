@@ -21,7 +21,7 @@ void init_display() {
   u8g2.setFont(display_default_font); //tady se dá zkrouhnout místo, fonty zaberou dost paměti
 }
 
-void display_volby(uint8_t *_pozice, uint8_t *_data) {
+void display_cteni_nfc(uint8_t *_pozice, uint8_t *_data) {
   u8g2.clear();
   switch(*_pozice) { 
     case 0:
@@ -57,4 +57,17 @@ void display_message(String msg) {
 
   u8g2.sendBuffer();
   u8g2.setFont(display_default_font);
+}
+
+void display_info_menu() {
+  u8g2.setFont(u8g2_font_5x8_tf);
+  u8g2.drawXBM(64, 20, 80, 40, xbm_strela_vlna_logo_male);
+  u8g2.drawStr(0, 10, "IP:");
+
+  u8g2.sendBuffer();
+  u8g2.setFont(display_default_font);
+}
+
+void display_clear() {
+  u8g2.clear();
 }

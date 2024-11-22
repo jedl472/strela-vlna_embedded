@@ -1,15 +1,8 @@
 #include "input.h"
 
-#define TL0 27  //doprava
-#define TL1 26  //doleva
-#define TL2 14  //nahoru
-#define TL3 33  //dolu
-#define TL4 32  //enter
-#define TL5 25  //esc
+#include "ui.h"
 
-#define BUTTON_DEBOUNCE 50
-
-uint8_t isMainMenuActive = 0;
+bool isMainMenuActive = 0;
 
 void IRAM_ATTR menu_on_interrupt() { isMainMenuActive = 1; }
 

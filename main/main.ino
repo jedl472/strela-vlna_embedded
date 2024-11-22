@@ -2,6 +2,7 @@
 //vlastni moduly (jsou zde i knihovny pro display, musí být importovány před knihovnamy pro nfc, jinak se program nezkompiluje)
 #include "input.h"
 #include "display.h"
+#include "ui.h"
 
 // knihovny pro čtečku nfc
 #include <PN532_I2C.h>
@@ -70,7 +71,7 @@ void setup() {
     }
   }
 
-  nfc_pn532.setPassiveActivationRetries(0xFF); // nastavení maximálního počtu pokusů o čtení NFC tagu, odpovídá cca jedné sekundě
+  nfc_pn532.setPassiveActivationRetries(0x40); // nastavení maximálního počtu pokusů o čtení NFC tagu, odpovídá cca jedné sekundě
   nfc_pn532.SAMConfig(); // konfigurace NFC modulu pro čtení tagů
 
 
@@ -89,6 +90,9 @@ void setup() {
 
 
 void loop() {
+  Serial.print(xPortGetCoreID());
+  Serial.println(" main loop alive check");
+
   bool uspech;                             // úspěšné čtení
   uint8_t uid[] = { 0, 0, 0, 0, 0, 0, 0 }; // unikátní ID tagu, asi by mělo jít dát kratší, ale všechny možné tagy mají asi max 7 (?) pozic a chceme riskovat stack overflow?
   uint8_t uidLength;                       // délka ID tagu
@@ -167,7 +171,7 @@ void loop() {
         while (!amIFinished) {
           if((volby_dynamicMenu[0] != lastVolby_dynamicMenu[0]) || (volby_dynamicMenu[1] != lastVolby_dynamicMenu[1])) {  //tento blok pouze vykresluje na display TODO: udelat hezci
             if(lastVolby_dynamicMenu[0] != volby_dynamicMenu[0]) { volbyUzivatele[1] = 0; } //AKUTNE: vymyslet aby se nulovaly volby uzivatele pri prechazeni mezi menu (toto moc nefunguje)
-            display_volby(&volby_dynamicMenu[0], &volbyUzivatele[0]);
+            display_cteni_nfc(&volby_dynamicMenu[0], &volbyUzivatele[0]);
 
             lastVolby_dynamicMenu[0] = volby_dynamicMenu[0];
             lastVolby_dynamicMenu[1] = volby_dynamicMenu[1];
@@ -215,5 +219,22 @@ void loop() {
       //sem přijde kod po ukončení session
     }
   }
-  Serial.println("alive check");
+
+  if(isMainMenuActive) {
+    display_clear();
+    unsigned long buttonPressedMillis = 0; // funkce vyuzivana updateParseInput kvuli debounce
+
+    uint8_t volbyUzivatele[2] = {0, 0}; //tato promena uklada volby uzivatele, nemeni se dynamicky jako volby_dynamicMenu
+
+    uint8_t lastVolby_dynamicMenu[3] = {-1, -1, -1}; // tyto hodnoty aby se poprve vykreslil display, uklada předchozi stav volby_dynamicMenu aby se mohl updatova display
+    uint8_t volby_dynamicMenu[3] = {0, 0, 0}; //x(sipka doleva/doprava), y(sipka nahoru/dolu), potvrzení(enter/escape), meni se dynamicky funkci updateParseInput  DULEZITE: da se volne upravovat
+    bool jeStisknuteTlacitko[5];
+
+    while(isMainMenuActive) {
+      raw_updateButtons(&jeStisknuteTlacitko[0]); //blok pro update tlačítek
+      updateParseInput(&jeStisknuteTlacitko[0], &volby_dynamicMenu[0], &buttonPressedMillis);
+
+      display_info_menu();
+    }
+  }
 }
