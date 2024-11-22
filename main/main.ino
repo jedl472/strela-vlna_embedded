@@ -1,8 +1,4 @@
 // ---------------------------------------- Knihovny ---------------------------------------
-#include <U8g2lib.h> //docasne, pak prijde do vlastniho modulu
-#include <SPI.h>
-#include "bmp.h"
-
 //vlastni moduly (jsou zde i knihovny pro display, musí být importovány před knihovnamy pro nfc, jinak se program nezkompiluje)
 #include "input.h"
 #include "display.h"
@@ -39,12 +35,14 @@ PN532 nfc_pn532(pn532i2c);
 // http 
 HTTPClient http;
 
+
+
 /*
  ------------------------------------ Setup + loop --------------------------------------
 */
 
 void setup() {
-  inputSetup();
+  init_input();
   //setup věcí pro debug, zatím v podstatě placeholder a WIP
   if (debug) {
     Serial.begin(115200);
@@ -54,15 +52,15 @@ void setup() {
   //setup displeje, TODO: nechat vykreslit střela vlna startovací obrazovku
   if (debug) { Serial.println("Nastavuji display"); }
   
-  init_display()
+  init_display();
 
-  display_text("inicializace periferii");
+  display_message("Inicializuji periferie");
 
   //setup nfc
   nfc_pn532.begin();
   uint32_t versiondata = nfc_pn532.getFirmwareVersion(); // uložení verze desky pro kontrolu jejího připojení
   if (!versiondata) {  //pokud nenajde čtečku, zastaví program;
-    display_text("NFC nenalezeno");
+    display_message("NFC nenalezeno");
     
     if (debug) { Serial.println("Nebyl nalezen PN53x modul!"); }
     while (true) {
@@ -76,7 +74,8 @@ void setup() {
   nfc_pn532.SAMConfig(); // konfigurace NFC modulu pro čtení tagů
 
 
-  // TODO: setup wifi a http
+  display_message("Pripojuji wifi");
+
   if (debug) { Serial.println("Připojuji wifi"); }
   WiFi.begin(wifi_ssid, wifi_password);
   while(WiFi.status() != WL_CONNECTED) { // zastaví program dokud se nepřipojí k wifi
@@ -85,9 +84,7 @@ void setup() {
 
   if (debug) { Serial.println("Inicializace hotova"); }
 
-
-  
-  display_text("inicializace hotova");
+  display_message("");
 }
 
 
@@ -120,7 +117,7 @@ void loop() {
     }
     Serial.println(tagIdString);
 
-    display_text("cekam na server");
+    display_message("cekam na server");
 
     http.begin(serverName.c_str()); // start session
 
@@ -137,12 +134,15 @@ void loop() {
     int httpResponseCode = http.POST(requestBody);
 
     if (httpResponseCode != 200) {
-      display_text("server neodpovida");
+      display_message("server neodpovida");
+      delay(2000);
+      display_message("");
+
     } else {
       String response_payload = http.getString();
 
       if(response_payload == "n") {  //struktura requestů popsaná v souboru format-komunikace.txt
-        display_text("neznamy tag");
+        display_message("neznamy tag");
 
         http.end();  // neexistuje špatný tag, prostě se odpojí
       } else { //pokud projde počáteční request, může začít operátor dělat jeho magii
@@ -164,7 +164,6 @@ void loop() {
 
 
 
-        display_u8g2.clear();
         while (!amIFinished) {
           if((volby_dynamicMenu[0] != lastVolby_dynamicMenu[0]) || (volby_dynamicMenu[1] != lastVolby_dynamicMenu[1])) {  //tento blok pouze vykresluje na display TODO: udelat hezci
             if(lastVolby_dynamicMenu[0] != volby_dynamicMenu[0]) { volbyUzivatele[1] = 0; } //AKUTNE: vymyslet aby se nulovaly volby uzivatele pri prechazeni mezi menu (toto moc nefunguje)
@@ -183,7 +182,7 @@ void loop() {
           volbyUzivatele[volby_dynamicMenu[0]] = volby_dynamicMenu[1]; //updatuje volby uzivatele
 
           if(volby_dynamicMenu[0] == 2) {
-            display_text("posilam data");
+            display_message("posilam data");
 
             amIFinished = true;
 
@@ -200,17 +199,21 @@ void loop() {
             
             http.addHeader("Content-Type", "application/json");     
 
-            http.POST(requestBody);
+            int httpResponseCode = http.POST(requestBody);
+
+            if(httpResponseCode != 200) {
+              display_message("chyba serveru, neodeslano");
+            } else {
+              display_message("");
+            }
             http.end();
 
-            display_text("hotovo");
+            
           }
-        } //konec fce amIFinished
+        } //konec smycky amIFinished
       }
       //sem přijde kod po ukončení session
     }
-
-    delay(1000); 
   }
   Serial.println("alive check");
 }

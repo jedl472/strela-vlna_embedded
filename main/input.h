@@ -1,6 +1,6 @@
 #include "Arduino.h"
 
-void inputSetup();
+void init_input();
 //prvotni setup tlacitek typu pinMode
 
 void raw_updateButtons(bool *_input);
