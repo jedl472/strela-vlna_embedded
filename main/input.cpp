@@ -9,13 +9,19 @@
 
 #define BUTTON_DEBOUNCE 50
 
-void inputSetup() {
+uint8_t isMainMenuActive = 0;
+
+void IRAM_ATTR menu_on_interrupt() { isMainMenuActive = 1; }
+
+void init_input() {
   pinMode(TL0,INPUT_PULLUP);
   pinMode(TL1,INPUT_PULLUP);
   pinMode(TL2,INPUT_PULLUP);
   pinMode(TL3,INPUT_PULLUP);
   pinMode(TL4,INPUT_PULLUP);
   pinMode(TL5,INPUT_PULLUP);
+
+  attachInterrupt(TL4, menu_on_interrupt, RISING);
 }
 
 
@@ -71,3 +77,4 @@ void raw_updateButtons(bool *_input) { //tato funkce pouze přečte digital read
   _input[4] = !digitalRead(TL4);
   _input[5] = !digitalRead(TL5);
 }
+
