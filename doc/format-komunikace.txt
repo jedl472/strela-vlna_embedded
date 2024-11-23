@@ -12,6 +12,7 @@ Příklad komunikace mezi čtečkou a serverem (všechno je ve formátu JSON):
 
  2. Uzivatel si vybere, co chce u delat a posle se request:
    ctecka -> server   {'typ': 'akce', 'id': '335aa91a', 'akce': '2', 'uloha': '1'}
+   server -> ctecka   {'key': 'k'}
 
    "typ" je opet typ requestu, v tomto pripade akce, "id" je opet id tagu
    "akce" je:
@@ -23,6 +24,8 @@ Příklad komunikace mezi čtečkou a serverem (všechno je ve formátu JSON):
     - "0": Uloha typu A
     - "1": Uloha typu B
     - "2": Uloha typu C
+
+   Server dale posle request s jednou hodnotou "key" ktera bude "k" pokud platba probehla a "n" pokud ne
 
 
  3. Pokud se uzivatel rozhodne, ze chce vratit zpet akci, posle se tento request:
