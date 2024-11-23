@@ -113,18 +113,23 @@ void loop() {
     Serial.print("UID delka: "); Serial.print(uidLength, DEC); Serial.println(" bytu");
     Serial.print("UID hodnoty: ");
 
-    char tagIdString[8] = ""; //proměnná, která obsahuje id tagu jako znaky, aby se dala tisknout, posílat, atd...
+    String tagIdString = "00000000"; //proměnná, která obsahuje id tagu jako znaky, aby se dala tisknout, posílat, atd...
 
     for (uint8_t i = 0; i < 4; i++) {
       if(uid[i] < 10) {
-        tagIdString[i*2 + 1] = String(uid[i], HEX).charAt(0);
-        tagIdString[i*2] = 48;
+        tagIdString.setCharAt(i*2 + 1, String(uid[i], HEX).charAt(0));
+        tagIdString.setCharAt(i*2, '0');
       } else {
-        tagIdString[i*2] = String(uid[i], HEX).charAt(0);
-        tagIdString[i*2 + 1] = String(uid[i], HEX).charAt(1);
+        tagIdString.setCharAt(i*2, String(uid[i], HEX).charAt(0));
+        tagIdString.setCharAt(i*2 + 1, String(uid[i], HEX).charAt(1));
       }
-    }
-    Serial.println(tagIdString);
+    } Serial.println(tagIdString);
+
+    /*for (uint8_t i = 0; i < 4; i++) {
+      tagIdString[i] = uid[i];
+      Serial.print(String(uid[i], HEX));
+    }*/
+    Serial.println();
 
     display_message("cekam na server");
 
@@ -132,7 +137,6 @@ void loop() {
 
     String requestBody;
     {
-      String _tagIdString = String(tagIdString);
       StaticJsonDocument<200> jsonContainer;
       jsonContainer["typ"] = "overeni";
       jsonContainer["id"] = tagIdString;
@@ -151,13 +155,22 @@ void loop() {
     } else {
       String response_payload = http.getString();
 
-      if(response_payload == "n") {  //struktura requestů popsaná v souboru format-komunikace.txt
+      JsonDocument jsonResponse;
+      deserializeJson(jsonResponse, response_payload);
+
+      String nazevTymu = jsonResponse["nazev"];
+      String stavUctu = jsonResponse["penize"];
+
+      if(jsonResponse["key"] == "n") {  //struktura requestů popsaná v souboru format-komunikace.txt
         display_message("neznamy tag");
 
         http.end();  // neexistuje špatný tag, prostě se odpojí
       } else { //pokud projde počáteční request, může začít operátor dělat jeho magii
-        Serial.println("Stav účtu: ");  //debug
-        Serial.print(response_payload);
+        Serial.print("Nazev tymu: ");  //debug
+        Serial.println(nazevTymu);
+
+        Serial.print("Stav účtu: ");  //debug
+        Serial.println(stavUctu);
 
         posledniAkce_tym = ""; //TODO cist nazev tymu
 
@@ -170,35 +183,40 @@ void loop() {
 
         uint8_t volbyUzivatele[2] = {0, 0}; //tato promena uklada volby uzivatele, nemeni se dynamicky jako volby_dynamicMenu
 
-        uint8_t lastVolby_dynamicMenu[3] = {-1, -1, -1}; // tyto hodnoty aby se poprve vykreslil display, uklada předchozi stav volby_dynamicMenu aby se mohl updatova display
         int8_t volby_dynamicMenu[3] = {0, 0, 0}; //x(sipka doleva/doprava), y(sipka nahoru/dolu), potvrzení(enter/escape), meni se dynamicky funkci updateParseInput  DULEZITE: da se volne upravovat
+        int8_t last_volbyY = 0;
         bool jeStisknuteTlacitko[5]; // promena pasovaná do raw_updateButtons kam se ukladaji cista data z tlacitek (pouze kvuli modularite)
 
-
+        
+        display_clear();
 
         while (!amIFinished) {
-          if((volby_dynamicMenu[0] != lastVolby_dynamicMenu[0]) || (volby_dynamicMenu[1] != lastVolby_dynamicMenu[1])) {  //tento blok pouze vykresluje na display TODO: udelat hezci
-            if(lastVolby_dynamicMenu[0] != volby_dynamicMenu[0]) { volbyUzivatele[1] = 0; } //AKUTNE: vymyslet aby se nulovaly volby uzivatele pri prechazeni mezi menu (toto moc nefunguje)
-            display_cteni_menu(&volby_dynamicMenu[0], &volbyUzivatele[0]);
-
-            lastVolby_dynamicMenu[0] = volby_dynamicMenu[0];
-            lastVolby_dynamicMenu[1] = volby_dynamicMenu[1];
-            lastVolby_dynamicMenu[2] = volby_dynamicMenu[2];
-          } //konec bloku vzkreslujiciho na display 
-
+          Serial.print(volby_dynamicMenu[0]);
+          Serial.print(volby_dynamicMenu[1]);
+          Serial.println(volby_dynamicMenu[2]);
+          
+          display_cteni_menu(&volby_dynamicMenu[1], &volbyUzivatele[0], nazevTymu, stavUctu);
 
           raw_updateButtons(&jeStisknuteTlacitko[0]); //blok pro update tlačítek
           updateParseInput(&jeStisknuteTlacitko[0], &volby_dynamicMenu[0], &buttonPressedMillis);
 
-          if(volby_dynamicMenu[0] > 2) { volby_dynamicMenu[0] = 0; }
-          volbyUzivatele[volby_dynamicMenu[0]] = volby_dynamicMenu[1]; //updatuje volby uzivatele
+          if(volby_dynamicMenu[1] > 1) { volby_dynamicMenu[1] = 1; } if(volby_dynamicMenu[1] < 0) { volby_dynamicMenu[1] = 0; }
+          if(volby_dynamicMenu[0] > 2) { volby_dynamicMenu[0] = 2; } if(volby_dynamicMenu[0] < 0) { volby_dynamicMenu[0] = 0; }
 
-          if(volby_dynamicMenu[0] == 2) {
+          if(last_volbyY != volby_dynamicMenu[1]) {
+            volbyUzivatele[1-last_volbyY] = volby_dynamicMenu[0];
+            volby_dynamicMenu[0] = volbyUzivatele[1-volby_dynamicMenu[1]];
+            last_volbyY = volby_dynamicMenu[1];
+          } else {
+            volbyUzivatele[1-volby_dynamicMenu[1]] = volby_dynamicMenu[0];
+          }
+
+
+          if(volby_dynamicMenu[2] >= 1) {
             display_message("posilam data");
+            delay(500);
 
             amIFinished = true;
-            Serial.print("tisk: ");
-            Serial.println(tagIdString);
 
             String requestBody;
             {
@@ -220,11 +238,12 @@ void loop() {
             } else {
               display_message("");
             }
-            http.end();
-
-            
+          } else if(volby_dynamicMenu[2] <= -1) {
+            amIFinished = true;
+            display_message("");
           }
         } //konec smycky amIFinished
+        http.end();
       }
       //sem přijde kod po ukončení session
       canBeMainMenuTurnedOn = 1;
@@ -238,7 +257,6 @@ void loop() {
 
     uint8_t volbyUzivatele[2] = {0, 0}; //tato promena uklada volby uzivatele, nemeni se dynamicky jako volby_dynamicMenu
 
-    uint8_t lastVolby_dynamicMenu[3] = {-1, -1, -1}; // tyto hodnoty aby se poprve vykreslil display, uklada předchozi stav volby_dynamicMenu aby se mohl updatova display
     int8_t volby_dynamicMenu[3] = {0, 2, 0}; //x(sipka doleva/doprava), y(sipka nahoru/dolu), potvrzení(enter/escape), meni se dynamicky funkci updateParseInput  DULEZITE: da se volne upravovat
     uint8_t menu_uroven = 0;
     bool jeStisknuteTlacitko[5];

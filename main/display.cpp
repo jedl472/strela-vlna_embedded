@@ -21,8 +21,8 @@ void init_display() {
   u8g2.setFont(display_default_font); //tady se dá zkrouhnout místo, fonty zaberou dost paměti
 }
 
-void display_cteni_menu(int8_t *_pozice, uint8_t *_data) {
-  u8g2.clear();
+void display_cteni_menu(int8_t *_pozice, uint8_t *_data, String _nazevTymu, String _stavUctu) {
+ /* u8g2.drawStr(0, 0, "                                      ");
   switch(*_pozice) { 
     case 0:
       u8g2.drawStr(0, 10, "Nastavte typ akce: ");
@@ -37,9 +37,37 @@ void display_cteni_menu(int8_t *_pozice, uint8_t *_data) {
   }
 
   u8g2.drawStr(5, 30, ulohaToString(String(_data[0])).c_str());
-  u8g2.drawStr(30, 30, akceToString(String(_data[1])).c_str());
+  u8g2.drawStr(30, 30, akceToString(String(_data[1])).c_str());*/
+
+  u8g2.setFont(u8g2_font_6x10_tf);
+  u8g2.drawFrame(-1, 0, 130, 12);
+  u8g2.drawStr(10, 10, "Nastavte parametry");
+
+  u8g2.setFont(u8g2_font_5x8_tf);
+  u8g2.drawStr(0, 21, "Nazev tymu: ");
+  u8g2.drawStr(64, 21, _nazevTymu.c_str());
+  u8g2.drawStr(0, 31, "Stav uctu: ");
+  u8g2.drawStr(64, 31, _stavUctu.c_str());
+  u8g2.drawStr(0, 39, "------------------------------------------------------------");
+  u8g2.drawStr(5, 47, "Typ ulohy: ");
+  u8g2.drawStr(64, 47, ulohaToString(String(_data[0])).c_str());
+  u8g2.drawStr(5, 57, "Typ akce:  ");
+
+  u8g2.setDrawColor(0);
+  u8g2.drawBox(64, 49, 64, 10);
+  u8g2.setDrawColor(1);
+
+  u8g2.drawStr(64, 57, akceToString(String(_data[1])).c_str());
+
+
+  u8g2.setDrawColor(0);
+  u8g2.drawBox(0, 40, 5, 30);
+  u8g2.setDrawColor(1);
+  
+  u8g2.drawStr(0, ((1-(*_pozice))*10)+47, ">");
 
   u8g2.sendBuffer();
+  u8g2.setFont(display_default_font);
 }
 
 void display_message(String msg) {
