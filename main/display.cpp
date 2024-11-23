@@ -108,7 +108,6 @@ void display_info_menu(uint8_t display_page, uint8_t cursor_position, String pos
 
       u8g2.drawStr(0, ((2-cursor_position)*10)+10, ">");
 
-      u8g2.drawStr(0, 63, "Copyright Skrat");
       break;
 
     case 1:
@@ -128,7 +127,6 @@ void display_info_menu(uint8_t display_page, uint8_t cursor_position, String pos
       u8g2.drawStr(20, 35, gw.c_str());
       u8g2.drawStr(0, 60, srv.c_str());
 
-      //u8g2.drawStr(0, 63, "Copyright Skrat");
       u8g2.setFont(u8g2_font_5x8_tf);
       break;
 
@@ -142,7 +140,6 @@ void display_info_menu(uint8_t display_page, uint8_t cursor_position, String pos
       u8g2.drawStr(5, 30, ulohaToString(posledniAkce_uloha).c_str());
       u8g2.drawStr(30, 30, akceToString(posledniAkce_typ).c_str());
 
-      u8g2.drawStr(0, 63, "Copyright Skrat");
 
       break;
 
