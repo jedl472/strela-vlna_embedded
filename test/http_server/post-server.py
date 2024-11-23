@@ -30,13 +30,29 @@ class handler(BaseHTTPRequestHandler):
                 self.end_headers()
 
                 msg = self.rfile.read(int(self.headers.get("Content-Length")))
-                print(msg)
-
+                
                 json_data = json.loads(msg.decode())
 
                 print(json_data)
 
-                self.wfile.write(bytes("idk", "utf8"))
+                response = {}
+
+                if json_data["typ"] == "overeni":
+                        if json_data["id"] == "335aa91a":
+                                response["key"] = "k"
+                                response["nazev"] = "jilovaci423"
+                                response["penize"] = "45321"
+                        else:
+                                response["key"] = "n"
+                                
+                elif json_data["typ"] == "akce":
+                        pass #udelej nejakou akci
+                
+                elif json_data["typ"] == "vratit":
+                        pass #vrat akci
+
+                print(response)
+                self.wfile.write(bytes(json.dumps(response), "utf8"))
 
 
 with HTTPServer(('192.168.22.7', 80), handler) as server:
