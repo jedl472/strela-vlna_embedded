@@ -2,7 +2,6 @@
 //vlastni moduly (jsou zde i knihovny pro display, musí být importovány před knihovnamy pro nfc, jinak se program nezkompiluje)
 #include "input.h"
 #include "display.h"
-#include "ui.h"
 
 // knihovny pro čtečku nfc
 #include <PN532_I2C.h>
@@ -185,20 +184,18 @@ void loop() {
 
         int8_t volby_dynamicMenu[3] = {0, 0, 0}; //x(sipka doleva/doprava), y(sipka nahoru/dolu), potvrzení(enter/escape), meni se dynamicky funkci updateParseInput  DULEZITE: da se volne upravovat
         int8_t last_volbyY = 0;
-        bool jeStisknuteTlacitko[5]; // promena pasovaná do raw_updateButtons kam se ukladaji cista data z tlacitek (pouze kvuli modularite)
+
+        bool last_jeStisknuteTlacitko[5] = {0, 0, 0, 0, 0};
+        bool jeStisknuteTlacitko[5]; // promena pasovaná do raw_updateButtons kam se ukladaji cista data z tlacitek (hlavne kvuli modularite)
 
         
         display_clear();
 
         while (!amIFinished) {
-          Serial.print(volby_dynamicMenu[0]);
-          Serial.print(volby_dynamicMenu[1]);
-          Serial.println(volby_dynamicMenu[2]);
-          
           display_cteni_menu(&volby_dynamicMenu[1], &volbyUzivatele[0], nazevTymu, stavUctu);
 
           raw_updateButtons(&jeStisknuteTlacitko[0]); //blok pro update tlačítek
-          updateParseInput(&jeStisknuteTlacitko[0], &volby_dynamicMenu[0], &buttonPressedMillis);
+          updateParseInput(&jeStisknuteTlacitko[0], &last_jeStisknuteTlacitko[0], &volby_dynamicMenu[0], &buttonPressedMillis);
 
           if(volby_dynamicMenu[1] > 1) { volby_dynamicMenu[1] = 1; } if(volby_dynamicMenu[1] < 0) { volby_dynamicMenu[1] = 0; }
           if(volby_dynamicMenu[0] > 2) { volby_dynamicMenu[0] = 2; } if(volby_dynamicMenu[0] < 0) { volby_dynamicMenu[0] = 0; }
@@ -259,11 +256,13 @@ void loop() {
 
     int8_t volby_dynamicMenu[3] = {0, 2, 0}; //x(sipka doleva/doprava), y(sipka nahoru/dolu), potvrzení(enter/escape), meni se dynamicky funkci updateParseInput  DULEZITE: da se volne upravovat
     uint8_t menu_uroven = 0;
+
+    bool last_jeStisknuteTlacitko[5];
     bool jeStisknuteTlacitko[5];
 
     while(isMainMenuActive) {
       raw_updateButtons(&jeStisknuteTlacitko[0]); //blok pro update tlačítek
-      updateParseInput(&jeStisknuteTlacitko[0], &volby_dynamicMenu[0], &buttonPressedMillis);
+      updateParseInput(&jeStisknuteTlacitko[0], &last_jeStisknuteTlacitko[0], &volby_dynamicMenu[0], &buttonPressedMillis);
       if(volby_dynamicMenu[1] < 0) { volby_dynamicMenu[1] = 0; } if(volby_dynamicMenu[1] > 2) { volby_dynamicMenu[1] = 2; }
 
       if(volby_dynamicMenu[2] >= 1) {
