@@ -87,7 +87,7 @@ void display_message(String msg) {
   u8g2.setFont(display_default_font);
 }
 
-void display_info_menu(uint8_t display_page, uint8_t cursor_position, String posledniAkce_uloha, String posledniAkce_typ, String posledniAkce_tym) {
+void display_info_menu(uint8_t display_page, uint8_t cursor_position, String posledniAkce_uloha, String posledniAkce_typ, String posledniAkce_tym, String ip, String gw, String srv) {
   u8g2.setFont(u8g2_font_5x8_tf);
   //u8g2.drawXBM(64, 12, 80, 40, xbm_strela_vlna_logo_small);
 
@@ -112,17 +112,24 @@ void display_info_menu(uint8_t display_page, uint8_t cursor_position, String pos
       break;
 
     case 1:
+      u8g2.setFont(u8g2_font_profont10_tf );
+
       u8g2.setDrawColor(0);
       u8g2.drawBox(0, 0, 128, 64);
       u8g2.setDrawColor(1);
       //u8g2.drawXBM(64, 12, 80, 40, xbm_strela_vlna_logo_small);
-      u8g2.drawStr(5, 10, "verze: 1.0");
+      u8g2.drawStr(0, 10, "verze: 1.0");
 
-      u8g2.drawStr(5, 25, "IP: 199.199.199.199");
-      u8g2.drawStr(5, 35, "GW: 255.255.255.255");
-      u8g2.drawStr(5, 45, "server: 100.100.100.100");
+      u8g2.drawStr(0, 25, "IP:");
+      u8g2.drawStr(0, 35, "GW:");
+      u8g2.drawStr(0, 50, "server:");
 
-      u8g2.drawStr(0, 63, "Copyright Skrat");
+      u8g2.drawStr(20, 25, ip.c_str());
+      u8g2.drawStr(20, 35, gw.c_str());
+      u8g2.drawStr(0, 60, srv.c_str());
+
+      //u8g2.drawStr(0, 63, "Copyright Skrat");
+      u8g2.setFont(u8g2_font_5x8_tf);
       break;
 
     case 2:

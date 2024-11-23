@@ -248,6 +248,9 @@ void loop() {
   }
 
   if(isMainMenuActive) {
+
+
+
     canBeMainMenuTurnedOn = 0;
     display_clear();
     unsigned long buttonPressedMillis = 0; // funkce vyuzivana updateParseInput kvuli debounce
@@ -317,7 +320,7 @@ void loop() {
       }
       volby_dynamicMenu[2] = 0;
 
-      display_info_menu(menu_uroven, volby_dynamicMenu[1], posledniAkce["uloha"], posledniAkce["akce"], posledniAkce_tym);
+      display_info_menu(menu_uroven, volby_dynamicMenu[1], posledniAkce["uloha"], posledniAkce["akce"], posledniAkce_tym, WiFi.localIP().toString(), WiFi.gatewayIP().toString(), serverName);
       Serial.println(volby_dynamicMenu[2]);
     }
     display_message("");
