@@ -118,7 +118,7 @@ void display_info_menu(uint8_t display_page, uint8_t cursor_position, String pos
       u8g2.drawBox(0, 0, 128, 64);
       u8g2.setDrawColor(1);
       //u8g2.drawXBM(64, 12, 80, 40, xbm_strela_vlna_logo_small);
-      u8g2.drawStr(0, 10, "verze: 1.0");
+      u8g2.drawStr(0, 10, "verze: 1.0 beta");
 
       u8g2.drawStr(0, 25, "IP:");
       u8g2.drawStr(0, 35, "GW:");
