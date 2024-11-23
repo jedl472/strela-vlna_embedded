@@ -1,12 +1,31 @@
-Formát zpráv: První 3 znaky - typ zprávy (a zárověň kontrola jestli není něco špatně s přenosem)
-              dále specifické podle typu zprávy
+Příklad komunikace mezi čtečkou a serverem (všechno je ve formátu JSON):
 
-1. Přiloží se tag, čtečka pošle zprávu: "bgn1e2e3e4e" (1e2e3e4e je čtyřbajtové id tagu naflákané dohromady)
-                       odpověď serveru: "12345" (stav účtu, n -> neznámý tag, následující číslo je stav účtu)
 
-2. Operátor vybere akci: "actna1e2e3e4e" - 4. znak "n" - nakup, "p" - prodej, "v" - vyřešení
-                                         - 5. znak typ úlohy (a, b, atd...)
-                                         - dale id tagu
-        odpověď serveru: "k" (k -> ok, n -> error)
+ 1. Načte se tag a pošle se ověření:
+   ctecka -> server   {'typ': 'overeni', 'id': '225ab9aa', 'ctecka': '1'}
+   server -> ctecka   {'key': 'k', 'nazev': 'jilovaci423', 'penize': '45321'}
+   
+   "typ" je typ requestu, "id" je id nfc tagu v hexu sesite dohromady (v tomto pripade tedy 22:5A:B9:AA) a "ctecka" je id ctecky
+   pokud neni id v databazi, melo by se poslat neco ve stylu:
+   server -> ctecka   {'key': 'n'}
 
-3. Operátor ukončí práci s tagem: "end" (asi není uplně potřeba, ale alespoň bude kdyžtak server vědět co se děje, při např neočekávaném ukončení)
+
+ 2. Uzivatel si vybere, co chce u delat a posle se request:
+   ctecka -> server   {'typ': 'akce', 'id': '335aa91a', 'akce': '2', 'uloha': '1'}
+
+   "typ" je opet typ requestu, v tomto pripade akce, "id" je opet id tagu
+   "akce" je:
+    - "0": Uloha byla vyresena
+    - "1": Uloha byla zakoupena
+    - "2": Uloha byla prodana do bazaru
+
+   "uloha" je:
+    - "0": Uloha typu A
+    - "1": Uloha typu B
+    - "2": Uloha typu C
+
+
+ 3. Pokud se uzivatel rozhodne, ze chce vratit zpet akci, posle se tento request:
+   ctecka -> server   {'akce': '2', 'uloha': '1', 'id': '335aa91a', 'typ': 'vratit'}
+   
+   "typ" je v tomto pripade vratit, zbytek uplne stejne

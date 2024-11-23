@@ -1,3 +1,5 @@
+Schema propojeni modulu ve ctecce:
+
 ----------- Display ------------
 RS   ->  D5
 P/W  ->  D23
