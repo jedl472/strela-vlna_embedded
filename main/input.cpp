@@ -3,8 +3,9 @@
 #include "ui.h"
 
 bool isMainMenuActive = 0;
+bool canBeMainMenuTurnedOn = 0;
 
-void IRAM_ATTR menu_on_interrupt() { isMainMenuActive = 1; }
+void IRAM_ATTR menu_on_interrupt() { if(canBeMainMenuTurnedOn == 1) { isMainMenuActive = 1; } }
 
 void init_input() {
   pinMode(TL0,INPUT_PULLUP);
@@ -18,7 +19,7 @@ void init_input() {
 }
 
 
-void updateParseInput(bool *_inputButtons, uint8_t *_output, unsigned long *buttonPressedMillis) { 
+void updateParseInput(bool *_inputButtons, int8_t *_output, unsigned long *buttonPressedMillis) { 
   if(_inputButtons[0] == 1) { //tlačítko doprava       
     if((millis() - *buttonPressedMillis) > BUTTON_DEBOUNCE) {
       _output[0] += 1;
