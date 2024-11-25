@@ -1,4 +1,5 @@
 #include "input.h"
+#include "setup.h"
 
 bool isMainMenuActive = 0;
 bool canBeMainMenuTurnedOn = 0;

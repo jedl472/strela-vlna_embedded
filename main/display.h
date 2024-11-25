@@ -1,5 +1,6 @@
 #include "Arduino.h"
 
+
 void init_display();
 
 void display_cteni_menu(int8_t *_pozice, uint8_t *_data, String _nazevTymu, String _stavUctu);

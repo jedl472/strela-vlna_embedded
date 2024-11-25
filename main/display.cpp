@@ -1,14 +1,10 @@
 #include "display.h"
+#include "setup.h"
 
 #include "xbm.h"
 
 #include <U8g2lib.h>
 #include <SPI.h>
-
-
-#define display_clk 18   // Clock: RS   (označení pinů na samotné desce displeje)
-#define display_data 23  // Data:  PW
-#define display_cs 5     // CS:    E
 
 U8G2_ST7920_128X64_F_SW_SPI u8g2(U8G2_R0, display_clk, display_data, display_cs, /* reset=*/ U8X8_PIN_NONE); // TODO: zjistit co znamená U8X8_PIN_NONE a jestli je potřeba připojit reset pin (RST)
 

@@ -2,6 +2,8 @@
 //vlastni moduly (jsou zde i knihovny pro display, musí být importovány před knihovnamy pro nfc, jinak se program nezkompiluje)
 #include "input.h"
 #include "display.h"
+#include "setup.h"
+
 
 // knihovny pro čtečku nfc
 #include <PN532_I2C.h>
@@ -14,15 +16,6 @@
 
 //utilita na parsování json
 #include <ArduinoJson.h>
-
-/*
-  -------------------------------------- Nastavení ---------------------------------------
-*/
-#define debug 1
-
-const char* wifi_ssid = "GAM2";
-const char* wifi_password = "JejTGame123+";
-String serverName = "http://192.168.22.7:80";
 
 /*
  --------------------------------- Globání proměnné -------------------------------------
@@ -50,13 +43,13 @@ void setup() {
 
   init_input();
   //setup věcí pro debug, zatím v podstatě placeholder a WIP
-  if (debug) {
+  if (DEBUG_MODE) {
     Serial.begin(115200);
     Serial.println("system startuje");
   }
 
   //setup displeje, TODO: nechat vykreslit střela vlna startovací obrazovku
-  if (debug) { Serial.println("Nastavuji display"); }
+  if (DEBUG_MODE) { Serial.println("Nastavuji display"); }
   
   init_display();
 
@@ -68,7 +61,7 @@ void setup() {
   if (!versiondata) {  //pokud nenajde čtečku, zastaví program;
     display_message("NFC nenalezeno");
     
-    if (debug) { Serial.println("Nebyl nalezen PN53x modul!"); }
+    if (DEBUG_MODE) { Serial.println("Nebyl nalezen PN53x modul!"); }
     while (true) {
       nfc_pn532.begin();
       uint32_t versiondata = nfc_pn532.getFirmwareVersion();
@@ -82,13 +75,13 @@ void setup() {
 
   display_message("Pripojuji wifi");
 
-  if (debug) { Serial.println("Připojuji wifi"); }
+  if (DEBUG_MODE) { Serial.println("Připojuji wifi"); }
   WiFi.begin(wifi_ssid, wifi_password);
   while(WiFi.status() != WL_CONNECTED) { // zastaví program dokud se nepřipojí k wifi
     delay(1);
   }
 
-  if (debug) { Serial.println("Inicializace hotova"); }
+  if (DEBUG_MODE) { Serial.println("Inicializace hotova"); }
 
   display_message("");
   canBeMainMenuTurnedOn = 1;
@@ -286,7 +279,7 @@ void loop() {
           }
         } else if(menu_uroven == 2 ) {
           if(posledniAkce["typ"] == "akce") {
-            http.begin(serverName.c_str());
+            http.begin(server_name.c_str());
             display_message("posilam data");
             String requestBody;
 
@@ -320,7 +313,7 @@ void loop() {
       }
       volby_dynamicMenu[2] = 0;
 
-      display_info_menu(menu_uroven, volby_dynamicMenu[1], posledniAkce["uloha"], posledniAkce["akce"], posledniAkce_tym, WiFi.localIP().toString(), WiFi.gatewayIP().toString(), serverName);
+      display_info_menu(menu_uroven, volby_dynamicMenu[1], posledniAkce["uloha"], posledniAkce["akce"], posledniAkce_tym, WiFi.localIP().toString(), WiFi.gatewayIP().toString(), server_name);
       Serial.println(volby_dynamicMenu[2]);
     }
     display_message("");
