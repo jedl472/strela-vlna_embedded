@@ -1,35 +1,27 @@
 // ---------------------------------------- Knihovny ---------------------------------------
-//vlastni moduly (jsou zde i knihovny pro display, musí být importovány před knihovnamy pro nfc, jinak se program nezkompiluje)
+//vlastni moduly (jsou zde i knihovny pro display - display.h, musí být importovány před knihovnamy pro nfc, jinak se program nezkompiluje)
 #include "input.h"
 #include "display.h"
-#include "setup.h"
-
+#include "system_settings.h"
 
 // knihovny pro čtečku nfc
 #include <PN532_I2C.h>
 #include <PN532.h>
 #include <NfcAdapter.h>
 
-// wifi a http
+// wifi
 #include <WiFi.h>
-#include <HTTPClient.h>
 
-//utilita na parsování json
-#include <ArduinoJson.h>
+#include "requests.h"  //musi byt volana na tomto miste, protoze knihovna pro requesty se jinak nezkompiluje
 
 /*
  --------------------------------- Globání proměnné -------------------------------------
 */
-
 // nfc
 PN532_I2C pn532i2c(Wire);
 PN532 nfc_pn532(pn532i2c);
 
-// http 
-HTTPClient http;
-
 StaticJsonDocument<200> posledniAkce;
-String posledniAkce_tym = "";
 
 /*
  ------------------------------------ Setup + loop --------------------------------------
@@ -76,7 +68,7 @@ void setup() {
   display_message("Pripojuji wifi");
 
   if (DEBUG_MODE) { Serial.println("Připojuji wifi"); }
-  WiFi.begin(wifi_ssid, wifi_password);
+  WiFi.begin("test", "test");
   while(WiFi.status() != WL_CONNECTED) { // zastaví program dokud se nepřipojí k wifi
     delay(1);
   }
@@ -125,28 +117,14 @@ void loop() {
 
     display_message("cekam na server");
 
-    http.begin(serverName.c_str()); // start session
-
-    String requestBody;
-    {
-      StaticJsonDocument<200> jsonContainer;
-      jsonContainer["typ"] = "overeni";
-      jsonContainer["id"] = tagIdString;
-      serializeJson(jsonContainer, requestBody);
-    }
-
-    http.addHeader("Content-Type", "application/json");  
-    int httpResponseCode = http.POST(requestBody);
+    String response_payload;
+    uint16_t httpResponseCode = request_overeni(response_payload, tagIdString);
 
     if (httpResponseCode != 200) {
       display_message("server neodpovida");
-      delay(2000);
-      display_message("");
+
       canBeMainMenuTurnedOn = 1;
-
     } else {
-      String response_payload = http.getString();
-
       JsonDocument jsonResponse;
       deserializeJson(jsonResponse, response_payload);
 
@@ -155,16 +133,12 @@ void loop() {
 
       if(jsonResponse["key"] == "n") {  //struktura requestů popsaná v souboru format-komunikace.txt
         display_message("neznamy tag");
-
-        http.end();  // neexistuje špatný tag, prostě se odpojí
       } else { //pokud projde počáteční request, může začít operátor dělat jeho magii
         Serial.print("Nazev tymu: ");  //debug
         Serial.println(nazevTymu);
 
         Serial.print("Stav účtu: ");  //debug
         Serial.println(stavUctu);
-
-        posledniAkce_tym = ""; //TODO cist nazev tymu
 
         bool amIFinished = false;
         
@@ -204,25 +178,17 @@ void loop() {
 
           if(volby_dynamicMenu[2] >= 1) {
             display_message("posilam data");
+
+            posledniAkce["tym"] = nazevTymu;
+
             delay(500);
+
+            String response_payload;
+            uint16_t httpResponseCode = request_akce(response_payload, tagIdString, volbyUzivatele[1], volbyUzivatele[0], posledniAkce);
 
             amIFinished = true;
 
-            String requestBody;
-            {
-              StaticJsonDocument<200> jsonContainer;
-              jsonContainer["typ"] = "akce";                       posledniAkce["typ"] = "akce";
-              jsonContainer["id"] = tagIdString;                   posledniAkce["id"] = tagIdString;
-              jsonContainer["akce"] = String(volbyUzivatele[1]);   posledniAkce["akce"] = String(volbyUzivatele[1]);
-              jsonContainer["uloha"] = String(volbyUzivatele[0]);  posledniAkce["uloha"] = String(volbyUzivatele[0]);
-              
-              serializeJson(jsonContainer, requestBody);       
-            }
-            
-            http.addHeader("Content-Type", "application/json");     
-
-            int httpResponseCode = http.POST(requestBody);
-
+            display_message("poslano");
             if(httpResponseCode != 200) {
               display_message("chyba serveru, neodeslano");
             } else {
@@ -233,7 +199,6 @@ void loop() {
             display_message("");
           }
         } //konec smycky amIFinished
-        http.end();
       }
       //sem přijde kod po ukončení session
       canBeMainMenuTurnedOn = 1;
@@ -241,9 +206,6 @@ void loop() {
   }
 
   if(isMainMenuActive) {
-
-
-
     canBeMainMenuTurnedOn = 0;
     display_clear();
     unsigned long buttonPressedMillis = 0; // funkce vyuzivana updateParseInput kvuli debounce
@@ -279,25 +241,16 @@ void loop() {
           }
         } else if(menu_uroven == 2 ) {
           if(posledniAkce["typ"] == "akce") {
-            http.begin(server_name.c_str());
-            display_message("posilam data");
-            String requestBody;
 
-            posledniAkce["typ"] = "vratit";
-            serializeJson(posledniAkce, requestBody);
-            posledniAkce["typ"] = "";
-              
-            http.addHeader("Content-Type", "application/json");     
-
-            int httpResponseCode = http.POST(requestBody);
-
+            uint16_t httpResponseCode = request_vratit(posledniAkce);
+            
             if(httpResponseCode != 200) {
               display_message("chyba serveru, neodeslano");
               delay(1500);
             } else {
               display_message("");
             }
-            http.end();
+            
             isMainMenuActive = 0;
             menu_uroven = 99;
           }
@@ -313,7 +266,7 @@ void loop() {
       }
       volby_dynamicMenu[2] = 0;
 
-      display_info_menu(menu_uroven, volby_dynamicMenu[1], posledniAkce["uloha"], posledniAkce["akce"], posledniAkce_tym, WiFi.localIP().toString(), WiFi.gatewayIP().toString(), server_name);
+      display_info_menu(menu_uroven, volby_dynamicMenu[1], posledniAkce["uloha"], posledniAkce["akce"], posledniAkce["tym"], WiFi.localIP().toString(), WiFi.gatewayIP().toString(), serverName);
       Serial.println(volby_dynamicMenu[2]);
     }
     display_message("");

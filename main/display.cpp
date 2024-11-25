@@ -1,5 +1,5 @@
 #include "display.h"
-#include "setup.h"
+#include "system_settings.h"
 
 #include "xbm.h"
 

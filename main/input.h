@@ -1,6 +1,13 @@
 #include "Arduino.h"
 
 
+#define TL0 27  //doprava
+#define TL1 26  //doleva
+#define TL2 14  //nahoru
+#define TL3 33  //dolu
+#define TL4 32  //enter
+#define TL5 25  //esc
+
 //#define BUTTON_DEBOUNCE 50
 
 extern TaskHandle_t Handle_ui_main_menu;
