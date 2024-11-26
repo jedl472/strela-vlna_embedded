@@ -2,12 +2,21 @@
 #include "system_settings.h"
 
 bool isMainMenuActive = 0;
+
+bool isSetupActive = 0;
+bool wifiSetupBypass = 0;
+
 bool canBeMainMenuTurnedOn = 0;
 
 const int8_t menuInputPattern[6] = {1, -1, 1, -1, 1, -1}; //bindovani tlacitek
 const int8_t menuOutputPattern[6] = {0, 0, 1, 1, 2, 2};
 
-void IRAM_ATTR menu_on_interrupt() { if(canBeMainMenuTurnedOn == 1) { isMainMenuActive = 1; } }
+void IRAM_ATTR menu_on_interrupt() { 
+  if(canBeMainMenuTurnedOn == 1) { isMainMenuActive = 1; } 
+  if(DEBUG_MODE && isSetupActive) {
+    wifiSetupBypass = 1;
+  }
+}
 
 void init_input() {
   pinMode(TL0,INPUT_PULLUP);

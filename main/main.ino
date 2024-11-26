@@ -28,6 +28,7 @@ StaticJsonDocument<200> posledniAkce;
 */
 
 void setup() {
+
   //setup globalnich promennych
   posledniAkce["akce"] = "";
   posledniAkce["uloha"] = "";
@@ -65,17 +66,27 @@ void setup() {
   nfc_pn532.SAMConfig(); // konfigurace NFC modulu pro čtení tagů
 
 
-  display_message("Pripojuji wifi");
+  display_message("Pripojuji wifi");¨
 
+  isSetupActive = 1;
   if (DEBUG_MODE) { Serial.println("Připojuji wifi"); }
-  WiFi.begin("test", "test");
-  while(WiFi.status() != WL_CONNECTED) { // zastaví program dokud se nepřipojí k wifi
+  WiFi.begin(wifi_ssid, wifi_password);
+  while(WiFi.status() != WL_CONNECTED || wifiSetupBypass) { // zastaví program dokud se nepřipojí k wifi
     delay(1);
   }
+  isSetupActive = 0;
 
   if (DEBUG_MODE) { Serial.println("Inicializace hotova"); }
 
-  display_message("");
+  if(DEBUG_MODE) {
+    if(wifiSetupBypass) {
+      display_message("wifi bypass DEBUG_MODE");
+    } else {
+      display_message("DEBUG_MODE active");
+    }
+  } else {
+    display_message("");
+  }
   canBeMainMenuTurnedOn = 1;
 }
 
