@@ -21,8 +21,6 @@
 PN532_I2C pn532i2c(Wire);
 PN532 nfc_pn532(pn532i2c);
 
-StaticJsonDocument<200> posledniAkce;
-
 /*
  ------------------------------------ Setup + loop --------------------------------------
 */
@@ -190,7 +188,7 @@ void loop() {
             delay(500);
 
             String response_payload;
-            int16_t httpResponseCode = request_akce(&response_payload, tagIdString, volbyUzivatele[1], volbyUzivatele[0], posledniAkce);
+            int16_t httpResponseCode = request_akce(&response_payload, tagIdString, volbyUzivatele[1], volbyUzivatele[0]);
 
             amIFinished = true;
 

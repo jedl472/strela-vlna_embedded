@@ -29,61 +29,19 @@ void init_input() {
   attachInterrupt(TL4, menu_on_interrupt, RISING);
 }
 
-/*Driv fungoval tenhle polo-debounce, ted uz jenom jako reference*/
-/*void updateParseInput(bool *_inputButtons, int8_t *_output, unsigned long *buttonPressedMillis) { 
-  if(_inputButtons[0] == 1) { //tlačítko doprava       
-    if((millis() - *buttonPressedMillis) > BUTTON_DEBOUNCE) {
-      _output[0] += 1;
-    }
-    *buttonPressedMillis = millis();
-  }
-
-  if(_inputButtons[1] == 1) { //tlačítko doleva       
-    if((millis() - *buttonPressedMillis) > BUTTON_DEBOUNCE) {
-      _output[0] -= 1;
-    }
-    *buttonPressedMillis = millis();
-  }
-
-  if(_inputButtons[2] == 1) { //tlačítko nahoru       
-    if((millis() - *buttonPressedMillis) > BUTTON_DEBOUNCE) {
-      _output[1] += 1;
-    }
-    *buttonPressedMillis = millis();
-  }
-
-  if(_inputButtons[3] == 1) { //tlačítko dolu       
-    if((millis() - *buttonPressedMillis) > BUTTON_DEBOUNCE) {
-      _output[1] -= 1;
-    }
-    *buttonPressedMillis = millis();
-  }
-
-  if(_inputButtons[4] == 1) { //tlačítko enter       
-    if((millis() - *buttonPressedMillis) > BUTTON_DEBOUNCE) {
-      _output[2] += 1;
-    }
-    *buttonPressedMillis = millis();
-  }
-
-  if(_inputButtons[5] == 1) { //tlačítko esc       
-    if((millis() - *buttonPressedMillis) > BUTTON_DEBOUNCE) {
-      _output[2] -= 1;
-    }
-    *buttonPressedMillis = millis();
-  }
-}*/
-
 void updateParseInput(bool *_inputButtons, bool *_lastInputButtons, int8_t *_output, unsigned long *buttonPressedMillis) { 
-  for(int i = 0; i <= 6; i++) {
-    if(_inputButtons[i] == 1 && _lastInputButtons[i] == 0) {
+  for(int i = 0; i < 6; i++) { //kdyz se tady vymeni < za <=, je to silenej heap overflow, staci si vyprintit jak vypada _output
+   if(_inputButtons[i] == 1 && _lastInputButtons[i] == 0) {
       _output[menuOutputPattern[i]] = _output[menuOutputPattern[i]] += menuInputPattern[i];
     }
     _lastInputButtons[i] = _inputButtons[i];
-
-    Serial.print(_output[menuOutputPattern[i]]);
   }
-  Serial.println();
+
+  /*for(int i = 0; i < 6; i++) {
+    Serial.print(_output[i]);
+    Serial.print(" ");
+  }
+  Serial.println();*/
 }
 
 void raw_updateButtons(bool *_input) { //tato funkce pouze přečte digital read (invertuje ho) a nastaví ho do vstupního listu
@@ -93,5 +51,7 @@ void raw_updateButtons(bool *_input) { //tato funkce pouze přečte digital read
   _input[3] = !digitalRead(TL3);
   _input[4] = !digitalRead(TL4);
   _input[5] = !digitalRead(TL5);
+
+  
 }
 

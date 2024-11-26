@@ -8,8 +8,6 @@
 #define TL4 32  //enter
 #define TL5 25  //esc
 
-//#define BUTTON_DEBOUNCE 50
-
 extern bool isMainMenuActive;
 
 extern bool isSetupActive;
