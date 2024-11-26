@@ -10,9 +10,11 @@
 
 //#define BUTTON_DEBOUNCE 50
 
-extern TaskHandle_t Handle_ui_main_menu;
 extern bool isMainMenuActive;
+
 extern bool isSetupActive;
+extern bool wifiSetupBypass;
+
 extern bool canBeMainMenuTurnedOn;
 
 

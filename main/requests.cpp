@@ -7,7 +7,7 @@
 HTTPClient http;
 
 
-uint16_t request_vratit(StaticJsonDocument<200> _posledniAkce) {
+int16_t request_vratit(StaticJsonDocument<200> _posledniAkce) {
   http.begin(serverName.c_str());
   display_message("posilam data");
 
@@ -19,14 +19,14 @@ uint16_t request_vratit(StaticJsonDocument<200> _posledniAkce) {
               
   http.addHeader("Content-Type", "application/json");
 
-  uint16_t httpResponseCode = http.POST(requestBody);
+  int16_t httpResponseCode = http.POST(requestBody);
 
   http.end();
 
   return (httpResponseCode);
 }
 
-uint16_t request_overeni(String _response_payload, String _tagIdString) {
+int16_t request_overeni(String *_response_payload, String _tagIdString) {
   http.begin(serverName.c_str()); // start session
 
   String requestBody;
@@ -40,16 +40,16 @@ uint16_t request_overeni(String _response_payload, String _tagIdString) {
 
   http.addHeader("Content-Type", "application/json");  
 
-  uint16_t httpResponseCode = http.POST(requestBody);
+  int16_t httpResponseCode = http.POST(requestBody);
 
-  _response_payload = http.getString();
+  *_response_payload = http.getString();
   
   http.end();
 
   return (httpResponseCode);
 }
 
-uint16_t request_akce(String _response_payload, String _tagIdString, uint8_t _akce, uint8_t _uloha, StaticJsonDocument<200> _posledniAkce) {
+int16_t request_akce(String *_response_payload, String _tagIdString, uint8_t _akce, uint8_t _uloha, StaticJsonDocument<200> _posledniAkce) {
 http.begin(serverName.c_str());
   String requestBody;
   {
@@ -66,8 +66,8 @@ http.begin(serverName.c_str());
             
   http.addHeader("Content-Type", "application/json");     
 
-  int httpResponseCode = http.POST(requestBody);
+  int16_t httpResponseCode = http.POST(requestBody);
 
-  _response_payload = http.getString();
+  *_response_payload = http.getString();
   http.end();
 }

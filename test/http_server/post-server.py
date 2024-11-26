@@ -55,5 +55,5 @@ class handler(BaseHTTPRequestHandler):
                 self.wfile.write(bytes(json.dumps(response), "utf8"))
 
 
-with HTTPServer(('192.168.22.7', 80), handler) as server:
+with HTTPServer(('192.168.180.52', 80), handler) as server:
     server.serve_forever()

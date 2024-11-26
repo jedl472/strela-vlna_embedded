@@ -66,12 +66,12 @@ void setup() {
   nfc_pn532.SAMConfig(); // konfigurace NFC modulu pro čtení tagů
 
 
-  display_message("Pripojuji wifi");¨
+  display_message("Pripojuji wifi");
 
   isSetupActive = 1;
   if (DEBUG_MODE) { Serial.println("Připojuji wifi"); }
   WiFi.begin(wifi_ssid, wifi_password);
-  while(WiFi.status() != WL_CONNECTED || wifiSetupBypass) { // zastaví program dokud se nepřipojí k wifi
+  while(WiFi.status() != WL_CONNECTED && !wifiSetupBypass) { // zastaví program dokud se nepřipojí k wifi
     delay(1);
   }
   isSetupActive = 0;
@@ -81,6 +81,7 @@ void setup() {
   if(DEBUG_MODE) {
     if(wifiSetupBypass) {
       display_message("wifi bypass DEBUG_MODE");
+      delay(500);
     } else {
       display_message("DEBUG_MODE active");
     }
@@ -120,16 +121,10 @@ void loop() {
       }
     } Serial.println(tagIdString);
 
-    /*for (uint8_t i = 0; i < 4; i++) {
-      tagIdString[i] = uid[i];
-      Serial.print(String(uid[i], HEX));
-    }*/
-    Serial.println();
-
     display_message("cekam na server");
 
     String response_payload;
-    uint16_t httpResponseCode = request_overeni(response_payload, tagIdString);
+    int16_t httpResponseCode = request_overeni(&response_payload, tagIdString);
 
     if (httpResponseCode != 200) {
       display_message("server neodpovida");
@@ -195,7 +190,7 @@ void loop() {
             delay(500);
 
             String response_payload;
-            uint16_t httpResponseCode = request_akce(response_payload, tagIdString, volbyUzivatele[1], volbyUzivatele[0], posledniAkce);
+            int16_t httpResponseCode = request_akce(&response_payload, tagIdString, volbyUzivatele[1], volbyUzivatele[0], posledniAkce);
 
             amIFinished = true;
 
@@ -253,7 +248,7 @@ void loop() {
         } else if(menu_uroven == 2 ) {
           if(posledniAkce["typ"] == "akce") {
 
-            uint16_t httpResponseCode = request_vratit(posledniAkce);
+            int16_t httpResponseCode = request_vratit(posledniAkce);
             
             if(httpResponseCode != 200) {
               display_message("chyba serveru, neodeslano");
@@ -278,7 +273,6 @@ void loop() {
       volby_dynamicMenu[2] = 0;
 
       display_info_menu(menu_uroven, volby_dynamicMenu[1], posledniAkce["uloha"], posledniAkce["akce"], posledniAkce["tym"], WiFi.localIP().toString(), WiFi.gatewayIP().toString(), serverName);
-      Serial.println(volby_dynamicMenu[2]);
     }
     display_message("");
 

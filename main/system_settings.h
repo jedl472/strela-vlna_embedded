@@ -5,9 +5,9 @@
 
 #define DEVICE_ID 1
 
-inline const char* wifi_ssid = "GAM2";
-inline const char* wifi_password = "JejTGame123+";
-inline String serverName = "http://192.168.22.7:80";
+inline const char* wifi_ssid = "Acd";
+inline const char* wifi_password = "Zabozrout123+";
+inline String serverName = "http://192.168.180.52:80";
 
 //--------------------------------- piny -----------------------------------------
 #define display_clk 18   // Clock: RS   (označení pinů na samotné desce displeje)

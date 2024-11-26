@@ -13,9 +13,9 @@ const int8_t menuOutputPattern[6] = {0, 0, 1, 1, 2, 2};
 
 void IRAM_ATTR menu_on_interrupt() { 
   if(canBeMainMenuTurnedOn == 1) { isMainMenuActive = 1; } 
-  if(DEBUG_MODE && isSetupActive) {
+  //if(DEBUG_MODE && isSetupActive) {
     wifiSetupBypass = 1;
-  }
+  //}
 }
 
 void init_input() {
@@ -80,8 +80,9 @@ void updateParseInput(bool *_inputButtons, bool *_lastInputButtons, int8_t *_out
       _output[menuOutputPattern[i]] = _output[menuOutputPattern[i]] += menuInputPattern[i];
     }
     _lastInputButtons[i] = _inputButtons[i];
-  }
 
+    Serial.print(_output[menuOutputPattern[i]]);
+  }
   Serial.println();
 }
 
