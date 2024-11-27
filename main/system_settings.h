@@ -7,7 +7,8 @@
 
 inline const char* wifi_ssid = "GAM2";
 inline const char* wifi_password = "JejTGame123+";
-inline String serverName = "http://192.168.22.7:80";
+inline String serverName = "http://strela-vlna.gchd.cz/api/cash";
+//inline String serverName = "http://192.168.22.7:80";
 
 //--------------------------------- piny -----------------------------------------
 #define display_clk 18   // Clock: RS   (označení pinů na samotné desce displeje)

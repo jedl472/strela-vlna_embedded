@@ -125,7 +125,7 @@ void loop() {
     int16_t httpResponseCode = request_overeni(&response_payload, tagIdString);
 
     if (httpResponseCode != 200) {
-      display_message("server neodpovida");
+      if (DEBUG_MODE) { display_message(String("server vratil kod ") + String(httpResponseCode));} else { display_message("server neodpovida"); }
       delay(500);
 
       canBeMainMenuTurnedOn = 1;

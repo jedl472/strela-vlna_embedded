@@ -16,15 +16,21 @@ int16_t request_overeni(String *_response_payload, String _tagIdString) {
     StaticJsonDocument<200> jsonContainer;
     jsonContainer["typ"] = "overeni";
     jsonContainer["id"] = _tagIdString;
-    jsonContainer["ctecka"] = DEVICE_ID;
+    jsonContainer["ctecka"] = String(DEVICE_ID);
     serializeJson(jsonContainer, requestBody);
   }
 
-  http.addHeader("Content-Type", "application/json");  
+  //http.addHeader("Content-Type", "application/json");  
 
   int16_t httpResponseCode = http.POST(requestBody);
 
   *_response_payload = http.getString();
+
+    Serial.println();
+    Serial.print("req payload: ");
+    Serial.println(requestBody);
+    Serial.print("srv response: ");
+    Serial.println(httpResponseCode);
   
   http.end();
 
@@ -39,9 +45,9 @@ int16_t request_akce(String *_response_payload, String _tagIdString, uint8_t _ak
     StaticJsonDocument<200> jsonContainer;
     jsonContainer["typ"] = "akce";                       posledniAkce["typ"] = "akce";
     jsonContainer["id"] = _tagIdString;                  posledniAkce["id"] = _tagIdString;
-    jsonContainer["akce"] = _akce;                       posledniAkce["akce"] = _akce;
+    jsonContainer["akce"] = _akce;                       posledniAkce["akce"] = String(_akce);
     jsonContainer["uloha"] = _uloha;                     posledniAkce["uloha"] = _uloha;
-    jsonContainer["ctecka"] = DEVICE_ID;                 posledniAkce["ctecka"] = DEVICE_ID;
+    jsonContainer["ctecka"] = String(DEVICE_ID);         posledniAkce["ctecka"] = String(DEVICE_ID);
 
               
     serializeJson(jsonContainer, requestBody);       
