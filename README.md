@@ -1,2 +1,5 @@
 TODO (dle priority):
- - prepsat aby to davalo vetsi smysl
+ - udelat overeovani prijateho json jestli je dostatek penez
+ - sjednotit alert system
+ - debug mode
+ - dokumentace

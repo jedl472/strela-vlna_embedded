@@ -115,6 +115,9 @@ void display_info_menu(uint8_t display_page, uint8_t cursor_position, String pos
       //u8g2.drawXBM(64, 12, 80, 40, xbm_strela_vlna_logo_small);
       u8g2.drawStr(0, 10, "verze: 1.0 beta");
 
+      u8g2.drawStr(100, 10, "ID:");
+      u8g2.drawStr(117, 10, String(DEVICE_ID).c_str());
+
       u8g2.drawStr(0, 25, "IP:");
       u8g2.drawStr(0, 35, "GW:");
       u8g2.drawStr(0, 50, "server:");

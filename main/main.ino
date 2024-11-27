@@ -126,6 +126,7 @@ void loop() {
 
     if (httpResponseCode != 200) {
       display_message("server neodpovida");
+      delay(500);
 
       canBeMainMenuTurnedOn = 1;
     } else {
