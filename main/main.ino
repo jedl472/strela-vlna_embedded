@@ -154,6 +154,7 @@ void loop() {
 
         if(jsonResponse["key"] == "n") {  //struktura requestů popsaná v souboru format-komunikace.txt
           display_message("neznamy tag");
+          delay(500);
         } else { //pokud projde počáteční request, může začít operátor dělat jeho magii
 
           if(DEBUG_MODE) {
