@@ -81,7 +81,6 @@ int16_t request_vratit(JsonDocument _posledniAkce) {
 
   _posledniAkce["typ"] = "vratit";
   serializeJson(_posledniAkce, requestBody);
-  _posledniAkce["typ"] = "";
               
   http.addHeader("Content-Type", "application/json");
 

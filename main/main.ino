@@ -14,6 +14,8 @@
 
 #include "requests.h"  //musi byt volana na tomto miste, protoze knihovna pro requesty se jinak nezkompiluje
 
+#include <StreamUtils.h>
+
 /*
  --------------------------------- Globání proměnné -------------------------------------
 */
@@ -26,18 +28,21 @@ PN532 nfc_pn532(pn532i2c);
 */
 
 void setup() {
-
-  //setup globalnich promennych
-  posledniAkce["akce"] = "";
-  posledniAkce["uloha"] = "";
-  posledniAkce["id"] = "";
-
-  init_input();
-
   if (DEBUG_MODE) {
     Serial.begin(115200);
     Serial.println("system startuje");
   }
+
+  EEPROM.begin(512);
+
+  EepromStream eepromStream(0, 512);
+  deserializeJson(posledniAkce, eepromStream);
+  Serial.println();
+  Serial.println(posledniAkce["typ"].as<String>());
+  Serial.println();
+
+
+  init_input();
 
   //setup displeje, TODO: nechat vykreslit střela vlna startovací obrazovku
   if (DEBUG_MODE) { Serial.println("Nastavuji display"); }
@@ -199,6 +204,10 @@ void loop() {
               String response_payload;
               int16_t httpResponseCode = request_akce(&response_payload, tagIdString, volbyUzivatele[1], volbyUzivatele[0]);
 
+              EepromStream eepromStream(0, 512);
+              serializeJson(posledniAkce, eepromStream);
+              EEPROM.commit();
+
               JsonDocument jsonResponse;
               deserializeJson(jsonResponse, response_payload);
 
@@ -262,6 +271,11 @@ void loop() {
           if(posledniAkce["typ"] == "akce") {
 
             int16_t httpResponseCode = request_vratit(posledniAkce);
+            posledniAkce["typ"] = "";
+
+            EepromStream eepromStream(0, 512);
+            serializeJson(posledniAkce, eepromStream);
+            EEPROM.commit();
             
             if(httpResponseCode != 200) {
               display_message("chyba serveru, neodeslano");
