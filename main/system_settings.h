@@ -1,7 +1,7 @@
 //soubor pro definovani systemovych nastaveni
 
 //-------------------------------- obecne ----------------------------------------
-#define DEBUG_MODE 0
+#define DEBUG_MODE 1
 #define ADMIN_TAG "335aa91a000000"
 
 #define DEVICE_ID 1

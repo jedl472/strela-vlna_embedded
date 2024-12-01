@@ -2,16 +2,16 @@ Příklad komunikace mezi čtečkou a serverem (všechno je ve formátu JSON):
 
 
  1. Načte se tag a pošle se ověření:
-   ctecka -> server   {'typ': 'overeni', 'id': '225ab9aa', 'ctecka': '1'}
+   ctecka -> server   {'typ': 'overeni', 'id': '1d38c91c031080', 'ctecka': '1'}
    server -> ctecka   {'key': 'k', 'nazev': 'jilovaci423', 'penize': '45321'}
    
-   "typ" je typ requestu, "id" je id nfc tagu v hexu sesite dohromady (v tomto pripade tedy 22:5A:B9:AA) a "ctecka" je id ctecky
+   "typ" je typ requestu, "id" je id nfc tagu v hexu sesite dohromady (v tomto pripade tedy 1d:38:c9:1c:03:10:80) a "ctecka" je id ctecky
    pokud neni id v databazi, melo by se poslat neco ve stylu:
    server -> ctecka   {'key': 'n'}
 
 
  2. Uzivatel si vybere, co chce u delat a posle se request:
-   ctecka -> server   {'typ': 'akce', 'id': '335aa91a', 'akce': '2', 'uloha': '1'}
+   ctecka -> server   {'typ': 'akce', 'id': '1d38c91c031080', 'akce': '2', 'uloha': '1'}
    server -> ctecka   {'key': 'k'}
 
    "typ" je opet typ requestu, v tomto pripade akce, "id" je opet id tagu
@@ -29,6 +29,6 @@ Příklad komunikace mezi čtečkou a serverem (všechno je ve formátu JSON):
 
 
  3. Pokud se uzivatel rozhodne, ze chce vratit zpet akci, posle se tento request:
-   ctecka -> server   {'akce': '2', 'uloha': '1', 'id': '335aa91a', 'typ': 'vratit'}
+   ctecka -> server   {'akce': '2', 'uloha': '1', 'id': '1d38c91c031080', 'typ': 'vratit'}
    
    "typ" je v tomto pripade vratit, zbytek uplne stejne

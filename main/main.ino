@@ -199,12 +199,19 @@ void loop() {
               String response_payload;
               int16_t httpResponseCode = request_akce(&response_payload, tagIdString, volbyUzivatele[1], volbyUzivatele[0]);
 
+              JsonDocument jsonResponse;
+              deserializeJson(jsonResponse, response_payload);
+
               amIFinished = true;
 
               if(httpResponseCode != 200) {
                 display_message("chyba serveru, neodeslano");
-              } else {
+              } else if (jsonResponse["key"] == "n") {
+                display_message("tym nema dostatek penez");
+              } else if (jsonResponse["key"] == "k") {
                 display_message("");
+              } else {
+                display_message("chyba");
               }
             } else if(volby_dynamicMenu[2] <= -1) {
               amIFinished = true;
