@@ -38,7 +38,7 @@ class handler(BaseHTTPRequestHandler):
                 response = {}
 
                 if json_data["typ"] == "overeni":
-                        if json_data["id"] == "335aa91a":
+                        if json_data["id"] == "1d38c91c031080":
                                 response["key"] = "k"
                                 response["nazev"] = "jilovaci423"
                                 response["penize"] = "45321"
@@ -46,7 +46,7 @@ class handler(BaseHTTPRequestHandler):
                                 response["key"] = "n"
                                 
                 elif json_data["typ"] == "akce":
-                        pass #udelej nejakou akci
+                        response["key"] = "k"
                 
                 elif json_data["typ"] == "vratit":
                         pass #vrat akci
