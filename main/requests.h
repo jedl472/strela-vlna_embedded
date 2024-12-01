@@ -3,11 +3,9 @@
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
 
-#define DEFAULT_MAX_JSON_SIZE 200
+extern JsonDocument posledniAkce;
 
-extern StaticJsonDocument<DEFAULT_MAX_JSON_SIZE> posledniAkce;
-
-int16_t request_vratit(StaticJsonDocument<DEFAULT_MAX_JSON_SIZE> _posledniAkce);
+int16_t request_vratit(JsonDocument _posledniAkce);
 
 int16_t request_overeni(String *_response_payload, String _tagIdString);
 
