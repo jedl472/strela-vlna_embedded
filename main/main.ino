@@ -107,9 +107,9 @@ void loop() {
     Serial.print("UID delka: "); Serial.print(uidLength, DEC); Serial.println(" bytu");
     Serial.print("UID hodnoty: ");
 
-    String tagIdString = "00000000"; //proměnná, která obsahuje id tagu jako znaky, aby se dala tisknout, posílat, atd...
+    String tagIdString = "00000000000000"; //proměnná, která obsahuje id tagu jako znaky, aby se dala tisknout, posílat, atd...
 
-    for (uint8_t i = 0; i < 4; i++) {
+    for (uint8_t i = 0; i < 7; i++) {
       if(uid[i] < 10) {
         tagIdString.setCharAt(i*2 + 1, String(uid[i], HEX).charAt(0));
         tagIdString.setCharAt(i*2, '0');

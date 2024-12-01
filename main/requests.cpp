@@ -6,14 +6,14 @@
 
 HTTPClient http;
 
-StaticJsonDocument<200> posledniAkce;
+StaticJsonDocument<DEFAULT_MAX_JSON_SIZE> posledniAkce;
 
 int16_t request_overeni(String *_response_payload, String _tagIdString) {
   http.begin(serverName.c_str()); // start session
 
   String requestBody;
   {
-    StaticJsonDocument<200> jsonContainer;
+    StaticJsonDocument<DEFAULT_MAX_JSON_SIZE> jsonContainer;
     jsonContainer["typ"] = "overeni";
     jsonContainer["id"] = _tagIdString;
     jsonContainer["ctecka"] = String(DEVICE_ID);
@@ -42,7 +42,7 @@ int16_t request_akce(String *_response_payload, String _tagIdString, uint8_t _ak
 
   String requestBody;
   {
-    StaticJsonDocument<200> jsonContainer;
+    StaticJsonDocument<DEFAULT_MAX_JSON_SIZE> jsonContainer;
     jsonContainer["typ"] = "akce";                       posledniAkce["typ"] = "akce";
     jsonContainer["id"] = _tagIdString;                  posledniAkce["id"] = _tagIdString;
     jsonContainer["akce"] = _akce;                       posledniAkce["akce"] = String(_akce);
@@ -64,7 +64,7 @@ int16_t request_akce(String *_response_payload, String _tagIdString, uint8_t _ak
   return (httpResponseCode);
 }
 
-int16_t request_vratit(StaticJsonDocument<200> _posledniAkce) {
+int16_t request_vratit(StaticJsonDocument<DEFAULT_MAX_JSON_SIZE> _posledniAkce) {
   http.begin(serverName.c_str());
   display_message("posilam data");
 
