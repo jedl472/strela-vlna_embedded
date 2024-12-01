@@ -1,6 +1,6 @@
 //zde prijde grafika v XBM formatu vyuzivana v metodach display.h
 //reference: https://github.com/olikraus/u8g2/wiki/u8g2reference#drawxbm
-//pro convert do xbm: https://javl.github.io/image2cpp/
+//pro convert do xbm: https://javl.github.io/image2cpp/ (je potřeba nastavit U8G2 mode, prohodi jednotlive hodnoty)
 
 #include "Arduino.h"
 

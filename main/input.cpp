@@ -2,9 +2,7 @@
 #include "system_settings.h"
 
 bool isMainMenuActive = 0;
-
 bool wifiSetupBypass = 0;
-
 bool canBeMainMenuTurnedOn = 0;
 
 const int8_t menuInputPattern[6] = {1, -1, 1, -1, 1, -1}; //bindovani tlacitek
@@ -29,8 +27,8 @@ void init_input() {
   attachInterrupt(TL4, menu_on_interrupt, RISING);
 }
 
-void updateParseInput(bool *_inputButtons, bool *_lastInputButtons, int8_t *_output, unsigned long *buttonPressedMillis) { 
-  for(int i = 0; i < 6; i++) { //kdyz se tady vymeni < za <=, je to silenej heap overflow, staci si vyprintit jak vypada _output
+void updateParseInput(bool *_inputButtons, bool *_lastInputButtons, int8_t *_output) { 
+  for(int i = 0; i < 6; i++) { //kdyz se tady vymeni < za <=, je to silenej stack overflow, staci si vyprintit jak vypada _output
    if(_inputButtons[i] == 1 && _lastInputButtons[i] == 0) {
       _output[menuOutputPattern[i]] = _output[menuOutputPattern[i]] += menuInputPattern[i];
     }
@@ -38,14 +36,12 @@ void updateParseInput(bool *_inputButtons, bool *_lastInputButtons, int8_t *_out
   }
 }
 
-void raw_updateButtons(bool *_input) { //tato funkce pouze přečte digital read (invertuje ho) a nastaví ho do vstupního listu
-  _input[0] = !digitalRead(TL0); //TODO zastřelit se
+void raw_updateButtons(bool *_input) {
+  _input[0] = !digitalRead(TL0);
   _input[1] = !digitalRead(TL1);
   _input[2] = !digitalRead(TL2);
   _input[3] = !digitalRead(TL3);
   _input[4] = !digitalRead(TL4);
   _input[5] = !digitalRead(TL5);
-
-  
 }
 

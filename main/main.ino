@@ -1,3 +1,12 @@
+/*
+Hlavní soubor, zde je hlavní struktura programu a dále:
+ - všechna logika pro UI
+ - čtení NFC
+
+Všechny použité knihovny v kódu se dají najít v strela-vlna_embedded/libraries.zip
+*/
+
+
 // ---------------------------------------- Knihovny ---------------------------------------
 //vlastni moduly (jsou zde i knihovny pro display - display.h, musí být importovány před knihovnamy pro nfc, jinak se program nezkompiluje)
 #include "input.h"
@@ -9,12 +18,11 @@
 #include <PN532.h>
 #include <NfcAdapter.h>
 
-// wifi
+//komunikace
 #include <WiFi.h>
-
 #include "requests.h"  //musi byt volana na tomto miste, protoze knihovna pro requesty se jinak nezkompiluje
 
-#include <StreamUtils.h>
+#include <StreamUtils.h> //knihovna používaná kvůli zápisu do EEPROM
 
 /*
  --------------------------------- Globání proměnné -------------------------------------
@@ -23,11 +31,14 @@
 PN532_I2C pn532i2c(Wire);
 PN532 nfc_pn532(pn532i2c);
 
+
 /*
  ------------------------------------ Setup + loop --------------------------------------
 */
-
 void setup() {
+  /*
+  Následuje setup všeho, co jde. Snaží se tisknout na display pomocí display_message() všechny kroky co se dějí
+  */
   if (DEBUG_MODE) {
     Serial.begin(115200);
     Serial.println("system startuje");
@@ -35,16 +46,11 @@ void setup() {
 
   EEPROM.begin(512);
 
-  EepromStream eepromStream(0, 512);
+  EepromStream eepromStream(0, 512); //vyčtení poslední akce z EEPROM
   deserializeJson(posledniAkce, eepromStream);
-  Serial.println();
-  Serial.println(posledniAkce["typ"].as<String>());
-  Serial.println();
-
 
   init_input();
 
-  //setup displeje, TODO: nechat vykreslit střela vlna startovací obrazovku
   if (DEBUG_MODE) { Serial.println("Nastavuji display"); }
   
   init_display();
@@ -58,14 +64,15 @@ void setup() {
     display_message("NFC nenalezeno");
     
     if (DEBUG_MODE) { Serial.println("Nebyl nalezen PN53x modul!"); }
-    while (true) {
+    while (true) { //pokud se čtečka nenalezne napoprvé, zkouší to znovu. Těžko říct, jestli to je bug, protože nikdo nečte dokumentaci ke knihovnám.
       nfc_pn532.begin();
       uint32_t versiondata = nfc_pn532.getFirmwareVersion();
       if (versiondata) { break; }
     }
   }
 
-  nfc_pn532.setPassiveActivationRetries(0x40); // nastavení maximálního počtu pokusů o čtení NFC tagu, odpovídá cca jedné sekundě
+
+  nfc_pn532.setPassiveActivationRetries(0x40); // nastavení maximálního počtu pokusů o čtení NFC tagu, odpovídá cca 250ms (255 odpovida cca 1 sekunde)
   nfc_pn532.SAMConfig(); // konfigurace NFC modulu pro čtení tagů
 
 
@@ -73,7 +80,7 @@ void setup() {
 
   if (DEBUG_MODE) { Serial.println("Připojuji wifi"); }
   WiFi.begin(wifi_ssid, wifi_password);
-  while(WiFi.status() != WL_CONNECTED && !wifiSetupBypass) { // zastaví program dokud se nepřipojí k wifi
+  while(WiFi.status() != WL_CONNECTED && !wifiSetupBypass) { // zastaví program dokud se nepřipojí k wifi, da se v DEBUG_MODE preskocit pomoci stisknutí enteru
     delay(1);
   }
 
@@ -162,30 +169,28 @@ void loop() {
           
           char* typUlohy = "0";
 
-          // ------------------ sem přijde všechna magie s tlačítky a dynamickými requesty ------------------
-          unsigned long buttonPressedMillis = 0; // funkce vyuzivana updateParseInput kvuli debounce
+          // ------------------ akce menu ------------------
 
-          uint8_t volbyUzivatele[2] = {0, 0}; //tato promena uklada volby uzivatele, nemeni se dynamicky jako volby_dynamicMenu
+          uint8_t volbyUzivatele[2] = {0, 0}; //tato promena uklada volby uzivatele, nemeni se dynamicky jako volby_dynamicMenu, vykresluje se na display
 
           int8_t volby_dynamicMenu[3] = {0, 0, 0}; //x(sipka doleva/doprava), y(sipka nahoru/dolu), potvrzení(enter/escape), meni se dynamicky funkci updateParseInput  DULEZITE: da se volne upravovat
           int8_t last_volbyY = 0;
 
           bool last_jeStisknuteTlacitko[5] = {0, 0, 0, 0, 0};
-          bool jeStisknuteTlacitko[5]; // promena pasovaná do raw_updateButtons kam se ukladaji cista data z tlacitek (hlavne kvuli modularite)
+          bool jeStisknuteTlacitko[5];
 
-          
           display_clear();
 
-          while (!amIFinished) {
+          while (!amIFinished) { //smycka kde operator nastavuje hodnoty
             display_cteni_menu(&volby_dynamicMenu[1], &volbyUzivatele[0], nazevTymu, stavUctu);
 
             raw_updateButtons(&jeStisknuteTlacitko[0]); //blok pro update tlačítek
-            updateParseInput(&jeStisknuteTlacitko[0], &last_jeStisknuteTlacitko[0], &volby_dynamicMenu[0], &buttonPressedMillis);
+            updateParseInput(&jeStisknuteTlacitko[0], &last_jeStisknuteTlacitko[0], &volby_dynamicMenu[0]);
 
-            if(volby_dynamicMenu[1] > 1) { volby_dynamicMenu[1] = 1; } if(volby_dynamicMenu[1] < 0) { volby_dynamicMenu[1] = 0; }
+            if(volby_dynamicMenu[1] > 1) { volby_dynamicMenu[1] = 1; } if(volby_dynamicMenu[1] < 0) { volby_dynamicMenu[1] = 0; } //omezeni jednotlivych vstupnich os
             if(volby_dynamicMenu[0] > 2) { volby_dynamicMenu[0] = 2; } if(volby_dynamicMenu[0] < 0) { volby_dynamicMenu[0] = 0; }
 
-            if(last_volbyY != volby_dynamicMenu[1]) {
+            if(last_volbyY != volby_dynamicMenu[1]) {  //pri prechazeni na ose y aby se spravne nastavovaly volbyUzivatele. Pouziva last_volbyY pro detekci zmeny
               volbyUzivatele[1-last_volbyY] = volby_dynamicMenu[0];
               volby_dynamicMenu[0] = volbyUzivatele[1-volby_dynamicMenu[1]];
               last_volbyY = volby_dynamicMenu[1];
@@ -201,7 +206,7 @@ void loop() {
 
               delay(500);
 
-              String response_payload;
+              String response_payload; //odpoved od serveru
               int16_t httpResponseCode = request_akce(&response_payload, tagIdString, volbyUzivatele[1], volbyUzivatele[0]);
 
               EepromStream eepromStream(0, 512);
@@ -234,10 +239,9 @@ void loop() {
     }
   }
 
-  if(isMainMenuActive) {
+  if(isMainMenuActive) { // vstupovani do main menu (pomocí interruptu v input.cpp)
     canBeMainMenuTurnedOn = 0;
     display_clear();
-    unsigned long buttonPressedMillis = 0; // funkce vyuzivana updateParseInput kvuli debounce
 
     uint8_t volbyUzivatele[2] = {0, 0}; //tato promena uklada volby uzivatele, nemeni se dynamicky jako volby_dynamicMenu
 
@@ -247,13 +251,13 @@ void loop() {
     bool last_jeStisknuteTlacitko[5];
     bool jeStisknuteTlacitko[5];
 
-    while(isMainMenuActive) {
+    while(isMainMenuActive) {// smycka v main menu
       raw_updateButtons(&jeStisknuteTlacitko[0]); //blok pro update tlačítek
-      updateParseInput(&jeStisknuteTlacitko[0], &last_jeStisknuteTlacitko[0], &volby_dynamicMenu[0], &buttonPressedMillis);
-      if(volby_dynamicMenu[1] < 0) { volby_dynamicMenu[1] = 0; } if(volby_dynamicMenu[1] > 2) { volby_dynamicMenu[1] = 2; }
+      updateParseInput(&jeStisknuteTlacitko[0], &last_jeStisknuteTlacitko[0], &volby_dynamicMenu[0]);
+      if(volby_dynamicMenu[1] < 0) { volby_dynamicMenu[1] = 0; } if(volby_dynamicMenu[1] > 2) { volby_dynamicMenu[1] = 2; } //omezeni os
 
-      if(volby_dynamicMenu[2] >= 1) {
-        if(menu_uroven == 0) {
+      if(volby_dynamicMenu[2] >= 1) { //zmacknuti enter
+        if(menu_uroven == 0) { //0. uroven - menu
           if(volby_dynamicMenu[1] == 2) {
             isMainMenuActive = 0;
           } else if(volby_dynamicMenu[1] == 1) {
@@ -267,7 +271,7 @@ void loop() {
           } else if(volby_dynamicMenu[1] == 0) {
             menu_uroven = 1;
           }
-        } else if(menu_uroven == 2 ) {
+        } else if(menu_uroven == 2 ) { //2. uroven - vraceni akce
           if(posledniAkce["typ"] == "akce") {
 
             int16_t httpResponseCode = request_vratit(posledniAkce);
@@ -287,7 +291,7 @@ void loop() {
             menu_uroven = 99;
           }
         }
-      } else if(volby_dynamicMenu[2] <= -1) {
+      } else if(volby_dynamicMenu[2] <= -1) { //zmacknuti esc
         if(menu_uroven == 0) {
           isMainMenuActive = 0;
           display_message("");
