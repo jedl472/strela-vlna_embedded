@@ -3,7 +3,6 @@
 
 bool isMainMenuActive = 0;
 
-bool isSetupActive = 0;
 bool wifiSetupBypass = 0;
 
 bool canBeMainMenuTurnedOn = 0;
@@ -13,9 +12,10 @@ const int8_t menuOutputPattern[6] = {0, 0, 1, 1, 2, 2};
 
 void IRAM_ATTR menu_on_interrupt() { 
   if(canBeMainMenuTurnedOn == 1) { isMainMenuActive = 1; } 
-  //if(DEBUG_MODE && isSetupActive) {
+
+  if(DEBUG_MODE) {
     wifiSetupBypass = 1;
-  //}
+  }
 }
 
 void init_input() {
@@ -36,12 +36,6 @@ void updateParseInput(bool *_inputButtons, bool *_lastInputButtons, int8_t *_out
     }
     _lastInputButtons[i] = _inputButtons[i];
   }
-
-  /*for(int i = 0; i < 6; i++) {
-    Serial.print(_output[i]);
-    Serial.print(" ");
-  }
-  Serial.println();*/
 }
 
 void raw_updateButtons(bool *_input) { //tato funkce pouze přečte digital read (invertuje ho) a nastaví ho do vstupního listu

@@ -33,7 +33,7 @@ void setup() {
   posledniAkce["id"] = "";
 
   init_input();
-  //setup věcí pro debug, zatím v podstatě placeholder a WIP
+
   if (DEBUG_MODE) {
     Serial.begin(115200);
     Serial.println("system startuje");
@@ -66,13 +66,11 @@ void setup() {
 
   display_message("Pripojuji wifi");
 
-  isSetupActive = 1;
   if (DEBUG_MODE) { Serial.println("Připojuji wifi"); }
   WiFi.begin(wifi_ssid, wifi_password);
   while(WiFi.status() != WL_CONNECTED && !wifiSetupBypass) { // zastaví program dokud se nepřipojí k wifi
     delay(1);
   }
-  isSetupActive = 0;
 
   if (DEBUG_MODE) { Serial.println("Inicializace hotova"); }
 
@@ -103,10 +101,6 @@ void loop() {
     canBeMainMenuTurnedOn = 0;
 
     // ------------------ počáteční kontrola validity tagu se serverem: ------------------
-    Serial.println("Nalezen NFC tag!");
-    Serial.print("UID delka: "); Serial.print(uidLength, DEC); Serial.println(" bytu");
-    Serial.print("UID hodnoty: ");
-
     String tagIdString = "00000000000000"; //proměnná, která obsahuje id tagu jako znaky, aby se dala tisknout, posílat, atd...
 
     for (uint8_t i = 0; i < 7; i++) {
@@ -117,96 +111,110 @@ void loop() {
         tagIdString.setCharAt(i*2, String(uid[i], HEX).charAt(0));
         tagIdString.setCharAt(i*2 + 1, String(uid[i], HEX).charAt(1));
       }
-    } Serial.println(tagIdString);
+    }
+    
+    if (DEBUG_MODE) {
+      Serial.println();
+      Serial.print("ID_length: "); Serial.print(uidLength, DEC);
+      Serial.print(" ID: ");
+      Serial.println(tagIdString);
+    }
 
-    display_message("cekam na server");
-
-    String response_payload;
-    int16_t httpResponseCode = request_overeni(&response_payload, tagIdString);
-
-    if (httpResponseCode != 200) {
-      if (DEBUG_MODE) { display_message(String("server vratil kod ") + String(httpResponseCode));} else { display_message("server neodpovida"); }
-      delay(500);
-
-      canBeMainMenuTurnedOn = 1;
+    if(tagIdString == ADMIN_TAG) {
+      display_message("ADMIN_TAG");
     } else {
-      JsonDocument jsonResponse;
-      deserializeJson(jsonResponse, response_payload);
+      display_message("cekam na server");
 
-      String nazevTymu = jsonResponse["nazev"];
-      String stavUctu = jsonResponse["penize"];
+      String response_payload;
+      int16_t httpResponseCode = request_overeni(&response_payload, tagIdString);
 
-      if(jsonResponse["key"] == "n") {  //struktura requestů popsaná v souboru format-komunikace.txt
-        display_message("neznamy tag");
-      } else { //pokud projde počáteční request, může začít operátor dělat jeho magii
-        Serial.print("Nazev tymu: ");  //debug
-        Serial.println(nazevTymu);
+      if (httpResponseCode != 200) {
+        if (DEBUG_MODE) { display_message(String("server vratil kod ") + String(httpResponseCode));} else { display_message("server neodpovida"); }
+        delay(500);
 
-        Serial.print("Stav účtu: ");  //debug
-        Serial.println(stavUctu);
+        canBeMainMenuTurnedOn = 1;
+      } else {
+        JsonDocument jsonResponse;
+        deserializeJson(jsonResponse, response_payload);
 
-        bool amIFinished = false;
-        
-        char* typUlohy = "0";
+        String nazevTymu = jsonResponse["nazev"];
+        String stavUctu = jsonResponse["penize"];
 
-        // ------------------ sem přijde všechna magie s tlačítky a dynamickými requesty ------------------
-        unsigned long buttonPressedMillis = 0; // funkce vyuzivana updateParseInput kvuli debounce
+        if(jsonResponse["key"] == "n") {  //struktura requestů popsaná v souboru format-komunikace.txt
+          display_message("neznamy tag");
+        } else { //pokud projde počáteční request, může začít operátor dělat jeho magii
 
-        uint8_t volbyUzivatele[2] = {0, 0}; //tato promena uklada volby uzivatele, nemeni se dynamicky jako volby_dynamicMenu
+          if(DEBUG_MODE) {
+            Serial.print("Nazev tymu: ");
+            Serial.println(nazevTymu);
 
-        int8_t volby_dynamicMenu[3] = {0, 0, 0}; //x(sipka doleva/doprava), y(sipka nahoru/dolu), potvrzení(enter/escape), meni se dynamicky funkci updateParseInput  DULEZITE: da se volne upravovat
-        int8_t last_volbyY = 0;
-
-        bool last_jeStisknuteTlacitko[5] = {0, 0, 0, 0, 0};
-        bool jeStisknuteTlacitko[5]; // promena pasovaná do raw_updateButtons kam se ukladaji cista data z tlacitek (hlavne kvuli modularite)
-
-        
-        display_clear();
-
-        while (!amIFinished) {
-          display_cteni_menu(&volby_dynamicMenu[1], &volbyUzivatele[0], nazevTymu, stavUctu);
-
-          raw_updateButtons(&jeStisknuteTlacitko[0]); //blok pro update tlačítek
-          updateParseInput(&jeStisknuteTlacitko[0], &last_jeStisknuteTlacitko[0], &volby_dynamicMenu[0], &buttonPressedMillis);
-
-          if(volby_dynamicMenu[1] > 1) { volby_dynamicMenu[1] = 1; } if(volby_dynamicMenu[1] < 0) { volby_dynamicMenu[1] = 0; }
-          if(volby_dynamicMenu[0] > 2) { volby_dynamicMenu[0] = 2; } if(volby_dynamicMenu[0] < 0) { volby_dynamicMenu[0] = 0; }
-
-          if(last_volbyY != volby_dynamicMenu[1]) {
-            volbyUzivatele[1-last_volbyY] = volby_dynamicMenu[0];
-            volby_dynamicMenu[0] = volbyUzivatele[1-volby_dynamicMenu[1]];
-            last_volbyY = volby_dynamicMenu[1];
-          } else {
-            volbyUzivatele[1-volby_dynamicMenu[1]] = volby_dynamicMenu[0];
+            Serial.print("Stav účtu: ");
+            Serial.println(stavUctu);
           }
+          
 
+          bool amIFinished = false;
+          
+          char* typUlohy = "0";
 
-          if(volby_dynamicMenu[2] >= 1) {
-            display_message("posilam data");
+          // ------------------ sem přijde všechna magie s tlačítky a dynamickými requesty ------------------
+          unsigned long buttonPressedMillis = 0; // funkce vyuzivana updateParseInput kvuli debounce
 
-            posledniAkce["tym"] = nazevTymu;
+          uint8_t volbyUzivatele[2] = {0, 0}; //tato promena uklada volby uzivatele, nemeni se dynamicky jako volby_dynamicMenu
 
-            delay(500);
+          int8_t volby_dynamicMenu[3] = {0, 0, 0}; //x(sipka doleva/doprava), y(sipka nahoru/dolu), potvrzení(enter/escape), meni se dynamicky funkci updateParseInput  DULEZITE: da se volne upravovat
+          int8_t last_volbyY = 0;
 
-            String response_payload;
-            int16_t httpResponseCode = request_akce(&response_payload, tagIdString, volbyUzivatele[1], volbyUzivatele[0]);
+          bool last_jeStisknuteTlacitko[5] = {0, 0, 0, 0, 0};
+          bool jeStisknuteTlacitko[5]; // promena pasovaná do raw_updateButtons kam se ukladaji cista data z tlacitek (hlavne kvuli modularite)
 
-            amIFinished = true;
+          
+          display_clear();
 
-            display_message("poslano");
-            if(httpResponseCode != 200) {
-              display_message("chyba serveru, neodeslano");
+          while (!amIFinished) {
+            display_cteni_menu(&volby_dynamicMenu[1], &volbyUzivatele[0], nazevTymu, stavUctu);
+
+            raw_updateButtons(&jeStisknuteTlacitko[0]); //blok pro update tlačítek
+            updateParseInput(&jeStisknuteTlacitko[0], &last_jeStisknuteTlacitko[0], &volby_dynamicMenu[0], &buttonPressedMillis);
+
+            if(volby_dynamicMenu[1] > 1) { volby_dynamicMenu[1] = 1; } if(volby_dynamicMenu[1] < 0) { volby_dynamicMenu[1] = 0; }
+            if(volby_dynamicMenu[0] > 2) { volby_dynamicMenu[0] = 2; } if(volby_dynamicMenu[0] < 0) { volby_dynamicMenu[0] = 0; }
+
+            if(last_volbyY != volby_dynamicMenu[1]) {
+              volbyUzivatele[1-last_volbyY] = volby_dynamicMenu[0];
+              volby_dynamicMenu[0] = volbyUzivatele[1-volby_dynamicMenu[1]];
+              last_volbyY = volby_dynamicMenu[1];
             } else {
+              volbyUzivatele[1-volby_dynamicMenu[1]] = volby_dynamicMenu[0];
+            }
+
+
+            if(volby_dynamicMenu[2] >= 1) {
+              display_message("posilam data");
+
+              posledniAkce["tym"] = nazevTymu;
+
+              delay(500);
+
+              String response_payload;
+              int16_t httpResponseCode = request_akce(&response_payload, tagIdString, volbyUzivatele[1], volbyUzivatele[0]);
+
+              amIFinished = true;
+
+              if(httpResponseCode != 200) {
+                display_message("chyba serveru, neodeslano");
+              } else {
+                display_message("");
+              }
+            } else if(volby_dynamicMenu[2] <= -1) {
+              amIFinished = true;
               display_message("");
             }
-          } else if(volby_dynamicMenu[2] <= -1) {
-            amIFinished = true;
-            display_message("");
-          }
-        } //konec smycky amIFinished
+          } //konec smycky amIFinished
+        }
+        //sem přijde kod po ukončení session
+        canBeMainMenuTurnedOn = 1;
       }
-      //sem přijde kod po ukončení session
-      canBeMainMenuTurnedOn = 1;
     }
   }
 
@@ -237,7 +245,6 @@ void loop() {
               menu_uroven = 2;
             } else {
               display_message("posledni akce neexistuje");
-              delay(1500);
               isMainMenuActive = 0;
               menu_uroven = 99;
             }
@@ -251,7 +258,6 @@ void loop() {
             
             if(httpResponseCode != 200) {
               display_message("chyba serveru, neodeslano");
-              delay(1500);
             } else {
               display_message("");
             }
@@ -263,17 +269,17 @@ void loop() {
       } else if(volby_dynamicMenu[2] <= -1) {
         if(menu_uroven == 0) {
           isMainMenuActive = 0;
+          display_message("");
         } else if(menu_uroven == 1) {
           menu_uroven = 0;
         } else if(menu_uroven == 2) {
           menu_uroven = 0;
         }
+      } else {
+        display_info_menu(menu_uroven, volby_dynamicMenu[1], posledniAkce["uloha"], posledniAkce["akce"], posledniAkce["tym"], WiFi.localIP().toString(), WiFi.gatewayIP().toString(), serverName);
       }
       volby_dynamicMenu[2] = 0;
-
-      display_info_menu(menu_uroven, volby_dynamicMenu[1], posledniAkce["uloha"], posledniAkce["akce"], posledniAkce["tym"], WiFi.localIP().toString(), WiFi.gatewayIP().toString(), serverName);
     }
-    display_message("");
 
     delay(200);
     canBeMainMenuTurnedOn = 1;

@@ -25,11 +25,13 @@ int16_t request_overeni(String *_response_payload, String _tagIdString) {
 
   *_response_payload = http.getString();
 
-  Serial.println();
-  Serial.print("requestBody:");
-  Serial.print(requestBody);
-  Serial.print(" httpResponseCode:");
-  Serial.println(httpResponseCode);
+  if(DEBUG_MODE) {
+    Serial.println();
+    Serial.print("requestBody:");
+    Serial.print(requestBody);
+    Serial.print(" httpResponseCode:");
+    Serial.println(httpResponseCode);
+  }
   
   http.end();
 
@@ -58,6 +60,14 @@ int16_t request_akce(String *_response_payload, String _tagIdString, uint8_t _ak
 
   *_response_payload = http.getString();
 
+  if(DEBUG_MODE) {
+    Serial.println();
+    Serial.print("requestBody:");
+    Serial.print(requestBody);
+    Serial.print(" httpResponseCode:");
+    Serial.println(httpResponseCode);
+  }
+
   http.end();
 
   return (httpResponseCode);
@@ -76,6 +86,14 @@ int16_t request_vratit(JsonDocument _posledniAkce) {
   http.addHeader("Content-Type", "application/json");
 
   int16_t httpResponseCode = http.POST(requestBody);
+
+  if(DEBUG_MODE) {
+    Serial.println();
+    Serial.print("requestBody:");
+    Serial.print(requestBody);
+    Serial.print(" httpResponseCode:");
+    Serial.println(httpResponseCode);
+  }
 
   http.end();
 

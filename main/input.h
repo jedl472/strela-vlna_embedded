@@ -10,7 +10,6 @@
 
 extern bool isMainMenuActive;
 
-extern bool isSetupActive;
 extern bool wifiSetupBypass;
 
 extern bool canBeMainMenuTurnedOn;
