@@ -220,7 +220,7 @@ void loop() {
               amIFinished = true;
 
               if(httpResponseCode != 200) {
-                display_message("chyba serveru, neodeslano");
+                display_message("chyba serveru, neodeslano"); // nechceme dat misto neodeslano error code?
               } else if (jsonResponse["key"] == "n") {
                 display_message("tym nema dostatek penez");
               } else if (jsonResponse["key"] == "k") {

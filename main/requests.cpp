@@ -46,8 +46,8 @@ int16_t request_akce(String *_response_payload, String _tagIdString, uint8_t _ak
     JsonDocument jsonContainer;
     jsonContainer["typ"] = "akce";                       posledniAkce["typ"] = "akce";
     jsonContainer["id"] = _tagIdString;                  posledniAkce["id"] = _tagIdString;
-    jsonContainer["akce"] = _akce;                       posledniAkce["akce"] = String(_akce);
-    jsonContainer["uloha"] = _uloha;                     posledniAkce["uloha"] = _uloha;
+    jsonContainer["akce"] = String(_akce);               posledniAkce["akce"] = String(_akce);
+    jsonContainer["uloha"] = String(_uloha);             posledniAkce["uloha"] = String(_uloha);
     jsonContainer["ctecka"] = String(DEVICE_ID);         posledniAkce["ctecka"] = String(DEVICE_ID);
 
               
