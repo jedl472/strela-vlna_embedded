@@ -1,5 +1,6 @@
 #include "requests.h"
 #include "system_settings.h"
+#include "auth.h"
 
 #include "display.h"
 
@@ -19,7 +20,8 @@ int16_t request_overeni(String *_response_payload, String _tagIdString) {
   jsonContainer["ctecka"] = String(DEVICE_ID);
   serializeJson(jsonContainer, requestBody);
 
-  http.addHeader("Content-Type", "application/json");  
+  http.addHeader("Content-Type", "application/json");
+  http.addHeader("Authorization", AUTH_TOKEN);  
 
   int16_t httpResponseCode = http.POST(requestBody);
 
@@ -54,7 +56,9 @@ int16_t request_akce(String *_response_payload, String _tagIdString, uint8_t _ak
     serializeJson(jsonContainer, requestBody);       
   }
 
-  http.addHeader("Content-Type", "application/json");     
+  http.addHeader("Content-Type", "application/json");   
+  http.addHeader("Authorization", AUTH_TOKEN);  
+
   
   int16_t httpResponseCode = http.POST(requestBody);
 
@@ -83,6 +87,7 @@ int16_t request_vratit(JsonDocument _posledniAkce) {
   serializeJson(_posledniAkce, requestBody);
               
   http.addHeader("Content-Type", "application/json");
+  http.addHeader("Authorization", AUTH_TOKEN);  
 
   int16_t httpResponseCode = http.POST(requestBody);
 
