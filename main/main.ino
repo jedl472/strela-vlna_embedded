@@ -75,7 +75,8 @@ void setup() {
   nfc_pn532.setPassiveActivationRetries(0x40); // nastavení maximálního počtu pokusů o čtení NFC tagu, odpovídá cca 250ms (255 odpovida cca 1 sekunde)
   nfc_pn532.SAMConfig(); // konfigurace NFC modulu pro čtení tagů
 
-
+  display_wifi_menu(1);
+  while (true){}
   display_message("Pripojuji wifi");
 
   if (DEBUG_MODE) { Serial.println("Připojuji wifi"); }

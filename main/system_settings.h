@@ -13,6 +13,11 @@ inline const char* wifi_password = "skaut123";
 inline String serverName = "https://strela-vlna.gchd.cz/api/cash";
 // inline String serverName = "http://192.168.22.7:80";
 
+
+inline String wifi_name[4][2]{
+  {"Simon774","skaut123"}
+} ;
+
 //--------------------------------- piny -----------------------------------------
 #define display_clk 18   // Clock: RS   (označení pinů na samotné desce displeje)
 #define display_data 23  // Data:  PW

@@ -1,3 +1,4 @@
+#include <sys/_stdint.h>
 #include "display.h"
 #include "system_settings.h"
 
@@ -146,6 +147,26 @@ void display_info_menu(uint8_t display_page, uint8_t cursor_position, String pos
       break;
   }
 
+  u8g2.sendBuffer();
+  u8g2.setFont(display_default_font);
+}
+
+void display_wifi_menu(uint8_t cursor_position){
+  u8g2.setFont(u8g2_font_5x8_tf);
+  u8g2.setDrawColor(0);
+  u8g2.drawBox(0, 0, 128, 64);
+  u8g2.setDrawColor(1);
+
+  u8g2.drawXBM(64, 25, 80, 40, xbm_strela_vlna_logo_small);
+  for(int i = 1;i<5;i++){
+    u8g2.drawStr(5, i*10, &wifi_name[i-1][0]); //chyba
+  }
+
+  u8g2.setDrawColor(0);
+  u8g2.drawBox(0, 0, 5, 30);
+  u8g2.setDrawColor(1);
+
+  u8g2.drawStr(0, ((2-cursor_position)*10)+10, ">");
   u8g2.sendBuffer();
   u8g2.setFont(display_default_font);
 }

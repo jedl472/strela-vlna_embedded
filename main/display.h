@@ -1,3 +1,4 @@
+#include <sys/_stdint.h>
 /*
 V tomto souboru jsou všechny grafické funkce, jakékoliv přímé vykreslování na display (s knihovnou u8g2) se děje tady.
 Pokud chcete přidat nějakou obrazovku, aby se něco vykreslovalo, tak založit tady jako funkci nebo přidat do nějaké stávající.
@@ -51,6 +52,9 @@ cursor_position je pozice kurzoru, v každém "módu" se chová jinak
 Zbytek proměnných jsou jenom informace, co se zobrazují. Mohly by být globální, ale toto mi přijde hezčí. 
 */
 
+void display_wifi_menu(uint8_t cursor_position);
+
+//neni cas
 
 void display_clear();
 /*
