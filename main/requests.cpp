@@ -33,6 +33,8 @@ int16_t request_overeni(String *_response_payload, String _tagIdString) {
     Serial.print(requestBody);
     Serial.print(" httpResponseCode:");
     Serial.println(httpResponseCode);
+    Serial.print("server response:");
+    Serial.println(*_response_payload);
   }
   
   http.end();
