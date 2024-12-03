@@ -118,7 +118,7 @@ void loop() {
     for (uint8_t i = 0; i < 7; i++) {
       if(uid[i] < 16) {
         tagIdString.setCharAt(i*2 + 1, String(uid[i], HEX).charAt(0));
-        tagIdString.setCharAt(i*2, '0');
+        //tagIdString.setCharAt(i*2, '0');
       } else {
         tagIdString.setCharAt(i*2, String(uid[i], HEX).charAt(0));
         tagIdString.setCharAt(i*2 + 1, String(uid[i], HEX).charAt(1));
@@ -172,9 +172,9 @@ void loop() {
 
           // ------------------ akce menu ------------------
 
-          uint8_t volbyUzivatele[2] = {0, 0}; //tato promena uklada volby uzivatele, nemeni se dynamicky jako volby_dynamicMenu, vykresluje se na display
+          uint8_t volbyUzivatele[2] = {1, 1}; //tato promena uklada volby uzivatele, nemeni se dynamicky jako volby_dynamicMenu, vykresluje se na display
 
-          int8_t volby_dynamicMenu[3] = {0, 0, 0}; //x(sipka doleva/doprava), y(sipka nahoru/dolu), potvrzení(enter/escape), meni se dynamicky funkci updateParseInput  DULEZITE: da se volne upravovat
+          int8_t volby_dynamicMenu[3] = {0, 1, 0}; //x(sipka doleva/doprava), y(sipka nahoru/dolu), potvrzení(enter/escape), meni se dynamicky funkci updateParseInput  DULEZITE: da se volne upravovat
           int8_t last_volbyY = 0;
 
           bool last_jeStisknuteTlacitko[5] = {0, 0, 0, 0, 0};
@@ -261,6 +261,7 @@ void loop() {
         if(menu_uroven == 0) { //0. uroven - menu
           if(volby_dynamicMenu[1] == 2) {
             isMainMenuActive = 0;
+            display_message("");
           } else if(volby_dynamicMenu[1] == 1) {
             if(posledniAkce["typ"] == "akce") {
               menu_uroven = 2;
