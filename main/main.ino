@@ -206,8 +206,8 @@ void loop() {
             raw_updateButtons(&jeStisknuteTlacitko[0]); //blok pro update tlačítek
             updateParseInput(&jeStisknuteTlacitko[0], &last_jeStisknuteTlacitko[0], &volby_dynamicMenu[0]);
 
-            if(volby_dynamicMenu[1] > 1) { volby_dynamicMenu[1] = 1; } if(volby_dynamicMenu[1] < 0) { volby_dynamicMenu[1] = 0; } //omezeni jednotlivych vstupnich os
-            if(volby_dynamicMenu[0] > 2) { volby_dynamicMenu[0] = 2; } if(volby_dynamicMenu[0] < 0) { volby_dynamicMenu[0] = 0; }
+            if(volby_dynamicMenu[1] > 1) { volby_dynamicMenu[1] = 0; } if(volby_dynamicMenu[1] < 0) { volby_dynamicMenu[1] = 1; } //omezeni jednotlivych vstupnich os
+            if(volby_dynamicMenu[0] > 2) { volby_dynamicMenu[0] = 0; } if(volby_dynamicMenu[0] < 0) { volby_dynamicMenu[0] = 2; }
 
             if(last_volbyY != volby_dynamicMenu[1]) {  //pri prechazeni na ose y aby se spravne nastavovaly volbyUzivatele. Pouziva last_volbyY pro detekci zmeny
               volbyUzivatele[1-last_volbyY] = volby_dynamicMenu[0];
