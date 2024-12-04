@@ -174,8 +174,8 @@ void loop() {
 
           uint8_t volbyUzivatele[2] = {1, 1}; //tato promena uklada volby uzivatele, nemeni se dynamicky jako volby_dynamicMenu, vykresluje se na display
 
-          int8_t volby_dynamicMenu[3] = {0, 1, 0}; //x(sipka doleva/doprava), y(sipka nahoru/dolu), potvrzení(enter/escape), meni se dynamicky funkci updateParseInput  DULEZITE: da se volne upravovat
-          int8_t last_volbyY = 0;
+          int8_t volby_dynamicMenu[3] = {1, 1, 0}; //x(sipka doleva/doprava), y(sipka nahoru/dolu), potvrzení(enter/escape), meni se dynamicky funkci updateParseInput  DULEZITE: da se volne upravovat
+          int8_t last_volbyY = 1;
 
           bool last_jeStisknuteTlacitko[5] = {0, 0, 0, 0, 0};
           bool jeStisknuteTlacitko[5];
