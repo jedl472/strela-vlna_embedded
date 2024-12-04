@@ -6,8 +6,8 @@
 
 #define DEVICE_ID 2
 
-inline const char* wifi_ssid = "Simon774";
-inline const char* wifi_password = "skaut123";
+inline const char* wifi_ssid = "";
+inline const char* wifi_password = "";
 // inline const char* wifi_ssid = "GAM2";
 // inline const char* wifi_password = "JejTGame123+";
 inline String serverName = "https://strela-vlna.gchd.cz/api/cash";
@@ -15,7 +15,10 @@ inline String serverName = "https://strela-vlna.gchd.cz/api/cash";
 
 
 inline String wifi_name[4][2]{
-  {"Simon774","skaut123"}
+  {"Simon774","skaut123"},
+  {"GAM2","JejTGame123+"},
+  {"",""},
+  {"",""}
 } ;
 
 //--------------------------------- piny -----------------------------------------
