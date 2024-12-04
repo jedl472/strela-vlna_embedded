@@ -105,12 +105,7 @@ void setup() {
   if (DEBUG_MODE) { Serial.println("Inicializace hotova"); }
 
   if(DEBUG_MODE) {
-    if(wifiSetupBypass) {
-      display_message("wifi bypass DEBUG_MODE");
-      delay(500);
-    } else {
-      display_message("DEBUG_MODE active");
-    }
+    display_message("DEBUG_MODE active");
   } else {
     display_message("");
   }
