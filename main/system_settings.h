@@ -6,8 +6,8 @@
 
 #define DEVICE_ID 2
 
-inline const char* wifi_ssid = "";
-inline const char* wifi_password = "";
+inline const char* wifi_ssid = "Simon774";
+inline const char* wifi_password = "skaut123";
 // inline const char* wifi_ssid = "GAM2";
 // inline const char* wifi_password = "JejTGame123+";
 inline String serverName = "https://strela-vlna.gchd.cz/api/cash";
