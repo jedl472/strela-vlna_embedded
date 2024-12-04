@@ -75,32 +75,38 @@ void setup() {
   nfc_pn532.setPassiveActivationRetries(0x40); // nastavení maximálního počtu pokusů o čtení NFC tagu, odpovídá cca 250ms (255 odpovida cca 1 sekunde)
   nfc_pn532.SAMConfig(); // konfigurace NFC modulu pro čtení tagů
 
-  {
+  if (DEBUG_MODE) { Serial.println("Připojuji wifi"); }
+  WiFi.begin(wifi_ssid, wifi_password);
+  int32_t tick = 0;
+  display_message("Pripojuji wifi");
+  while(WiFi.status() != WL_CONNECTED and tick < 5000) { // zastaví program dokud se nepřipojí k wifi, da se v DEBUG_MODE preskocit pomoci stisknutí enteru
+    delay(1);
+    tick ++;
+  }
+
+  if (WiFi.status() != WL_CONNECTED){
 
     int8_t volby_dynamicMenu[3] = {0, 3, 0}; //x(sipka doleva/doprava), y(sipka nahoru/dolu), potvrzení(enter/escape), meni se dynamicky funkci updateParseInput  DULEZITE: da se volne upravovat      int8_t last_volbyY = 0;
 
     bool last_jeStisknuteTlacitko[5] = {0, 0, 0, 0, 0};
     bool jeStisknuteTlacitko[5];
 
-    while (volby_dynamicMenu[2] != 1 ){
+    while (volby_dynamicMenu[2] == 0 ){
       display_wifi_menu(volby_dynamicMenu[1]);
 
       raw_updateButtons(&jeStisknuteTlacitko[0]); //blok pro update tlačítek
       updateParseInput(&jeStisknuteTlacitko[0], &last_jeStisknuteTlacitko[0], &volby_dynamicMenu[0]);
     }
-    Serial.println(volby_dynamicMenu[1]);
-    wifi_ssid = wifi_name[volby_dynamicMenu[1]][0].c_str();
-    wifi_password = wifi_name[volby_dynamicMenu[1]][1].c_str();
+    if (volby_dynamicMenu[2] == 1){
+      Serial.println(volby_dynamicMenu[1]);
+      wifi_ssid = wifi_name[volby_dynamicMenu[1]][0].c_str();
+      wifi_password = wifi_name[volby_dynamicMenu[1]][1].c_str();
+      WiFi.begin(wifi_ssid, wifi_password);
+    }
   }
 
   
-  display_message("Pripojuji wifi");
 
-  if (DEBUG_MODE) { Serial.println("Připojuji wifi"); }
-  WiFi.begin(wifi_ssid, wifi_password);
-  while(WiFi.status() != WL_CONNECTED) { // zastaví program dokud se nepřipojí k wifi, da se v DEBUG_MODE preskocit pomoci stisknutí enteru
-    delay(1);
-  }
 
   if (DEBUG_MODE) { Serial.println("Inicializace hotova"); }
 
