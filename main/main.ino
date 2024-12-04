@@ -294,7 +294,7 @@ void loop() {
             menu_uroven = 1;
           }
           else if(volby_dynamicMenu[1] == 0) {
-            volby_dynamicMenu[1] = 0;
+            volby_dynamicMenu[1] = 3;
             uint8_t minmax_wifi[2] = {0,3};
             Serial.println(volby_dynamicMenu[2]);
             bool vstupf = true;
