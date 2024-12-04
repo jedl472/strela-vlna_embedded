@@ -98,12 +98,14 @@ void display_info_menu(uint8_t display_page, uint8_t cursor_position, String pos
       u8g2.drawStr(5, 10, "exit");
       u8g2.drawStr(5, 20, "vratit posledni akci");
       u8g2.drawStr(5, 30, "system info");
+      u8g2.drawStr(5, 40, "wifi");
+
 
       u8g2.setDrawColor(0);
       u8g2.drawBox(0, 0, 5, 30);
       u8g2.setDrawColor(1);
 
-      u8g2.drawStr(0, ((2-cursor_position)*10)+10, ">");
+      u8g2.drawStr(0, ((3-cursor_position)*10)+10, ">");
 
       break;
 
@@ -142,7 +144,18 @@ void display_info_menu(uint8_t display_page, uint8_t cursor_position, String pos
 
 
       break;
+    case 3:
+      u8g2.setDrawColor(0);
+      u8g2.drawBox(0, 0, 128, 64);
+      u8g2.setDrawColor(1);
 
+      u8g2.drawStr(5, 10, "Prejete DJHsi vratit akci:");
+
+      u8g2.drawStr(5, 30, ulohaToString(posledniAkce_uloha).c_str());
+      u8g2.drawStr(30, 30, akceToString(posledniAkce_typ).c_str());
+
+
+      break;
     default:
       break;
   }

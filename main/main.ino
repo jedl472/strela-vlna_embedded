@@ -272,16 +272,17 @@ void loop() {
     bool jeStisknuteTlacitko[5];
 
     while(isMainMenuActive) {// smycka v main menu
+      uint8_t minmax[2] = {0,3}; // vrchní a spodní element listu
       raw_updateButtons(&jeStisknuteTlacitko[0]); //blok pro update tlačítek
       updateParseInput(&jeStisknuteTlacitko[0], &last_jeStisknuteTlacitko[0], &volby_dynamicMenu[0]);
-      if(volby_dynamicMenu[1] < 0) { volby_dynamicMenu[1] = 0; } if(volby_dynamicMenu[1] > 2) { volby_dynamicMenu[1] = 2; } //omezeni os
+      if(volby_dynamicMenu[1] < minmax[0]) { volby_dynamicMenu[1] = minmax[0]; } if(volby_dynamicMenu[1] > minmax[1]) { volby_dynamicMenu[1] = minmax[1]; } //omezeni os
 
       if(volby_dynamicMenu[2] >= 1) { //zmacknuti enter
         if(menu_uroven == 0) { //0. uroven - menu
-          if(volby_dynamicMenu[1] == 2) {
+          if(volby_dynamicMenu[1] == 3) {
             isMainMenuActive = 0;
             display_message("");
-          } else if(volby_dynamicMenu[1] == 1) {
+          } else if(volby_dynamicMenu[1] == 2) {
             if(posledniAkce["typ"] == "akce") {
               menu_uroven = 2;
             } else {
@@ -289,8 +290,29 @@ void loop() {
               isMainMenuActive = 0;
               menu_uroven = 99;
             }
-          } else if(volby_dynamicMenu[1] == 0) {
+          } else if(volby_dynamicMenu[1] == 1) {
             menu_uroven = 1;
+          }
+          else if(volby_dynamicMenu[1] == 0) {
+            volby_dynamicMenu[1] = 0
+            uint8_t minmax_wifi[2] = {0,3};
+            Serial.println(volby_dynamicMenu[2]);
+            bool vstupf = true;
+            while (volby_dynamicMenu[2] == 0 || vstupf || !last_jeStisknuteTlacitko[4]){
+            display_wifi_menu(volby_dynamicMenu[1]);
+
+            raw_updateButtons(&jeStisknuteTlacitko[0]); //blok pro update tlačítek
+            updateParseInput(&jeStisknuteTlacitko[0], &last_jeStisknuteTlacitko[0], &volby_dynamicMenu[0]);
+            vstupf = false;
+            if(volby_dynamicMenu[1] < minmax_wifi[0]) { volby_dynamicMenu[1] = minmax_wifi[1]; } if(volby_dynamicMenu[1] > minmax_wifi[1]) { volby_dynamicMenu[1] = minmax_wifi[0]; }
+            }
+            Serial.println(volby_dynamicMenu[1]);
+            wifi_ssid = wifi_name[volby_dynamicMenu[1]][0].c_str();
+            wifi_password = wifi_name[volby_dynamicMenu[1]][1].c_str();
+            WiFi.begin(wifi_ssid, wifi_password);
+            if(volby_dynamicMenu[1] < minmax[0]) { volby_dynamicMenu[1] = minmax[0]; } if(volby_dynamicMenu[1] > minmax[1]) { volby_dynamicMenu[1] = minmax[1]; }
+
+            // menu_uroven = 3;
           }
         } else if(menu_uroven == 2 ) { //2. uroven - vraceni akce
           if(posledniAkce["typ"] == "akce") {
