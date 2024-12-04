@@ -82,7 +82,7 @@ void setup() {
     bool last_jeStisknuteTlacitko[5] = {0, 0, 0, 0, 0};
     bool jeStisknuteTlacitko[5];
 
-    while (volby_dynamicMenu[2] != 1){
+    while (volby_dynamicMenu[2] != 1 ){
       display_wifi_menu(volby_dynamicMenu[1]);
 
       raw_updateButtons(&jeStisknuteTlacitko[0]); //blok pro update tlačítek
@@ -98,7 +98,7 @@ void setup() {
 
   if (DEBUG_MODE) { Serial.println("Připojuji wifi"); }
   WiFi.begin(wifi_ssid, wifi_password);
-  while(WiFi.status() != WL_CONNECTED && !wifiSetupBypass) { // zastaví program dokud se nepřipojí k wifi, da se v DEBUG_MODE preskocit pomoci stisknutí enteru
+  while(WiFi.status() != WL_CONNECTED) { // zastaví program dokud se nepřipojí k wifi, da se v DEBUG_MODE preskocit pomoci stisknutí enteru
     delay(1);
   }
 
@@ -193,7 +193,7 @@ void loop() {
           uint8_t volbyUzivatele[2] = {1, 1}; //tato promena uklada volby uzivatele, nemeni se dynamicky jako volby_dynamicMenu, vykresluje se na display
 
           int8_t volby_dynamicMenu[3] = {0, 1, 0}; //x(sipka doleva/doprava), y(sipka nahoru/dolu), potvrzení(enter/escape), meni se dynamicky funkci updateParseInput  DULEZITE: da se volne upravovat
-          int8_t last_volbyY = 0;
+          int8_t last_volbyY = 1;
 
           bool last_jeStisknuteTlacitko[5] = {0, 0, 0, 0, 0};
           bool jeStisknuteTlacitko[5];
@@ -326,7 +326,7 @@ void loop() {
       volby_dynamicMenu[2] = 0;
     }
 
-    delay(200);
+    // delay(200);
     canBeMainMenuTurnedOn = 1;
   }
 }
