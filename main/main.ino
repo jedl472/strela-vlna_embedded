@@ -75,24 +75,42 @@ void setup() {
   nfc_pn532.setPassiveActivationRetries(0x40); // nastavení maximálního počtu pokusů o čtení NFC tagu, odpovídá cca 250ms (255 odpovida cca 1 sekunde)
   nfc_pn532.SAMConfig(); // konfigurace NFC modulu pro čtení tagů
 
-
-  display_message("Pripojuji wifi");
-
   if (DEBUG_MODE) { Serial.println("Připojuji wifi"); }
-  WiFi.begin(wifi_ssid, wifi_password);
-  while(WiFi.status() != WL_CONNECTED && !wifiSetupBypass) { // zastaví program dokud se nepřipojí k wifi, da se v DEBUG_MODE preskocit pomoci stisknutí enteru
-    delay(1);
+
+  WiFi.begin(wifi_name[3][0].c_str(), wifi_name[3][1]);
+  
+  uint32_t millis_start = millis();
+  display_message("Pripojuji wifi");
+  while(WiFi.status() != WL_CONNECTED && (millis() - millis_start) < 5000) {} // zastaví program dokud se nepřipojí k wifi, nebo neubehne 5s
+
+  if (WiFi.status() != WL_CONNECTED){
+
+    int8_t volby_dynamicMenu[3] = {0, 3, 0}; //x(sipka doleva/doprava), y(sipka nahoru/dolu), potvrzení(enter/escape), meni se dynamicky funkci updateParseInput  DULEZITE: da se volne upravovat      int8_t last_volbyY = 0;
+
+    bool last_jeStisknuteTlacitko[5] = {0, 0, 0, 0, 0};
+    bool jeStisknuteTlacitko[5];
+
+    while (volby_dynamicMenu[2] == 0 ){
+      display_wifi_menu(volby_dynamicMenu[1]);
+
+      raw_updateButtons(&jeStisknuteTlacitko[0]); //blok pro update tlačítek
+      updateParseInput(&jeStisknuteTlacitko[0], &last_jeStisknuteTlacitko[0], &volby_dynamicMenu[0]);
+    }
+    if (volby_dynamicMenu[2] == 1){
+      Serial.println(volby_dynamicMenu[1]);
+      String wifi_ssid = wifi_name[volby_dynamicMenu[1]][0];
+      String wifi_password = wifi_name[volby_dynamicMenu[1]][1];
+      WiFi.begin(wifi_ssid.c_str(), wifi_password.c_str());
+    }
   }
+
+  
+
 
   if (DEBUG_MODE) { Serial.println("Inicializace hotova"); }
 
   if(DEBUG_MODE) {
-    if(wifiSetupBypass) {
-      display_message("wifi bypass DEBUG_MODE");
-      delay(500);
-    } else {
-      display_message("DEBUG_MODE active");
-    }
+    display_message("DEBUG_MODE active");
   } else {
     display_message("");
   }
@@ -188,8 +206,8 @@ void loop() {
             raw_updateButtons(&jeStisknuteTlacitko[0]); //blok pro update tlačítek
             updateParseInput(&jeStisknuteTlacitko[0], &last_jeStisknuteTlacitko[0], &volby_dynamicMenu[0]);
 
-            if(volby_dynamicMenu[1] > 1) { volby_dynamicMenu[1] = 1; } if(volby_dynamicMenu[1] < 0) { volby_dynamicMenu[1] = 0; } //omezeni jednotlivych vstupnich os
-            if(volby_dynamicMenu[0] > 2) { volby_dynamicMenu[0] = 2; } if(volby_dynamicMenu[0] < 0) { volby_dynamicMenu[0] = 0; }
+            if(volby_dynamicMenu[1] > 1) { volby_dynamicMenu[1] = 0; } if(volby_dynamicMenu[1] < 0) { volby_dynamicMenu[1] = 1; } //omezeni jednotlivych vstupnich os
+            if(volby_dynamicMenu[0] > 2) { volby_dynamicMenu[0] = 0; } if(volby_dynamicMenu[0] < 0) { volby_dynamicMenu[0] = 2; }
 
             if(last_volbyY != volby_dynamicMenu[1]) {  //pri prechazeni na ose y aby se spravne nastavovaly volbyUzivatele. Pouziva last_volbyY pro detekci zmeny
               volbyUzivatele[1-last_volbyY] = volby_dynamicMenu[0];
@@ -253,16 +271,17 @@ void loop() {
     bool jeStisknuteTlacitko[5];
 
     while(isMainMenuActive) {// smycka v main menu
+      uint8_t minmax[2] = {0,3}; // vrchní a spodní element listu
       raw_updateButtons(&jeStisknuteTlacitko[0]); //blok pro update tlačítek
       updateParseInput(&jeStisknuteTlacitko[0], &last_jeStisknuteTlacitko[0], &volby_dynamicMenu[0]);
-      if(volby_dynamicMenu[1] < 0) { volby_dynamicMenu[1] = 0; } if(volby_dynamicMenu[1] > 2) { volby_dynamicMenu[1] = 2; } //omezeni os
+      if(volby_dynamicMenu[1] < minmax[0]) { volby_dynamicMenu[1] = minmax[0]; } if(volby_dynamicMenu[1] > minmax[1]) { volby_dynamicMenu[1] = minmax[1]; } //omezeni os
 
       if(volby_dynamicMenu[2] >= 1) { //zmacknuti enter
         if(menu_uroven == 0) { //0. uroven - menu
-          if(volby_dynamicMenu[1] == 2) {
+          if(volby_dynamicMenu[1] == 3) {
             isMainMenuActive = 0;
             display_message("");
-          } else if(volby_dynamicMenu[1] == 1) {
+          } else if(volby_dynamicMenu[1] == 2) {
             if(posledniAkce["typ"] == "akce") {
               menu_uroven = 2;
             } else {
@@ -270,8 +289,29 @@ void loop() {
               isMainMenuActive = 0;
               menu_uroven = 99;
             }
-          } else if(volby_dynamicMenu[1] == 0) {
+          } else if(volby_dynamicMenu[1] == 1) {
             menu_uroven = 1;
+          } else if(volby_dynamicMenu[1] == 0) {
+            volby_dynamicMenu[1] = 3;
+            uint8_t minmax_wifi[2] = {0,3};
+
+            bool vstupf = true;
+            while (volby_dynamicMenu[2] == 0 || vstupf || !last_jeStisknuteTlacitko[4]){
+              display_wifi_menu(volby_dynamicMenu[1]);
+
+              raw_updateButtons(&jeStisknuteTlacitko[0]); //blok pro update tlačítek
+              updateParseInput(&jeStisknuteTlacitko[0], &last_jeStisknuteTlacitko[0], &volby_dynamicMenu[0]);
+              vstupf = false;
+              if(volby_dynamicMenu[1] < minmax_wifi[0]) { volby_dynamicMenu[1] = minmax_wifi[1]; } if(volby_dynamicMenu[1] > minmax_wifi[1]) { volby_dynamicMenu[1] = minmax_wifi[0]; }
+            }
+            Serial.println(volby_dynamicMenu[1]);
+            String wifi_ssid = wifi_name[volby_dynamicMenu[1]][0];
+            String wifi_password = wifi_name[volby_dynamicMenu[1]][1];
+            WiFi.begin(wifi_ssid.c_str(), wifi_password.c_str());
+            if(volby_dynamicMenu[1] < minmax[0]) { volby_dynamicMenu[1] = minmax[0]; } if(volby_dynamicMenu[1] > minmax[1]) { volby_dynamicMenu[1] = minmax[1]; }
+
+            isMainMenuActive = 0;
+            menu_uroven = 99;
           }
         } else if(menu_uroven == 2 ) { //2. uroven - vraceni akce
           if(posledniAkce["typ"] == "akce") {
@@ -308,7 +348,7 @@ void loop() {
       volby_dynamicMenu[2] = 0;
     }
 
-    delay(200);
+    // delay(200);
     canBeMainMenuTurnedOn = 1;
   }
 }

@@ -1,3 +1,4 @@
+#include <sys/_stdint.h>
 #include "display.h"
 #include "system_settings.h"
 
@@ -97,12 +98,14 @@ void display_info_menu(uint8_t display_page, uint8_t cursor_position, String pos
       u8g2.drawStr(5, 10, "exit");
       u8g2.drawStr(5, 20, "vratit posledni akci");
       u8g2.drawStr(5, 30, "system info");
+      u8g2.drawStr(5, 40, "wifi");
+
 
       u8g2.setDrawColor(0);
       u8g2.drawBox(0, 0, 5, 30);
       u8g2.setDrawColor(1);
 
-      u8g2.drawStr(0, ((2-cursor_position)*10)+10, ">");
+      u8g2.drawStr(0, ((3-cursor_position)*10)+10, ">");
 
       break;
 
@@ -113,7 +116,9 @@ void display_info_menu(uint8_t display_page, uint8_t cursor_position, String pos
       u8g2.drawBox(0, 0, 128, 64);
       u8g2.setDrawColor(1);
       //u8g2.drawXBM(64, 12, 80, 40, xbm_strela_vlna_logo_small);
+
       u8g2.drawStr(0, 10, "verze: 1.0");
+
 
       u8g2.drawStr(100, 10, "ID:");
       u8g2.drawStr(117, 10, String(DEVICE_ID).c_str());
@@ -141,11 +146,43 @@ void display_info_menu(uint8_t display_page, uint8_t cursor_position, String pos
 
 
       break;
+    case 3:
+      u8g2.setDrawColor(0);
+      u8g2.drawBox(0, 0, 128, 64);
+      u8g2.setDrawColor(1);
 
+      u8g2.drawStr(5, 10, "Prejete DJHsi vratit akci:");
+
+      u8g2.drawStr(5, 30, ulohaToString(posledniAkce_uloha).c_str());
+      u8g2.drawStr(30, 30, akceToString(posledniAkce_typ).c_str());
+
+
+      break;
     default:
       break;
   }
 
+  u8g2.sendBuffer();
+  u8g2.setFont(display_default_font);
+}
+
+void display_wifi_menu(uint8_t cursor_position){
+  u8g2.setFont(u8g2_font_5x8_tf);
+  u8g2.setDrawColor(0);
+  u8g2.drawBox(0, 0, 128, 64);
+  u8g2.setDrawColor(1);
+
+  u8g2.drawXBM(64, 25, 80, 40, xbm_strela_vlna_logo_small);
+  for(int i = 1;i<5;i++){
+    u8g2.drawStr(5, i*10, wifi_name[4-i][0].c_str()); //chyba
+    // u8g2.drawStr(5, i*10, "test"); //chyba
+  }
+
+  u8g2.setDrawColor(0);
+  u8g2.drawBox(0, 0, 5, 30);
+  u8g2.setDrawColor(1);
+
+  u8g2.drawStr(0, ((3-cursor_position)*10)+10, ">");
   u8g2.sendBuffer();
   u8g2.setFont(display_default_font);
 }
