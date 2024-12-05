@@ -76,13 +76,12 @@ void setup() {
   nfc_pn532.SAMConfig(); // konfigurace NFC modulu pro čtení tagů
 
   if (DEBUG_MODE) { Serial.println("Připojuji wifi"); }
-  WiFi.begin(wifi_ssid, wifi_password);
-  int32_t tick = 0;
+
+  WiFi.begin(wifi_name[volby_dynamicMenu[3]][0].c_str(), wifi_name[volby_dynamicMenu[3]][1]);
+  
+  uint32_t millis_start = millis();
   display_message("Pripojuji wifi");
-  while(WiFi.status() != WL_CONNECTED and tick < 5000) { // zastaví program dokud se nepřipojí k wifi, da se v DEBUG_MODE preskocit pomoci stisknutí enteru
-    delay(1);
-    tick ++;
-  }
+  while(WiFi.status() != WL_CONNECTED && (millis() - millis_start) < 5000) {} // zastaví program dokud se nepřipojí k wifi, nebo neubehne 5s
 
   if (WiFi.status() != WL_CONNECTED){
 
@@ -292,19 +291,18 @@ void loop() {
             }
           } else if(volby_dynamicMenu[1] == 1) {
             menu_uroven = 1;
-          }
-          else if(volby_dynamicMenu[1] == 0) {
+          } else if(volby_dynamicMenu[1] == 0) {
             volby_dynamicMenu[1] = 3;
             uint8_t minmax_wifi[2] = {0,3};
-            Serial.println(volby_dynamicMenu[2]);
+
             bool vstupf = true;
             while (volby_dynamicMenu[2] == 0 || vstupf || !last_jeStisknuteTlacitko[4]){
-            display_wifi_menu(volby_dynamicMenu[1]);
+              display_wifi_menu(volby_dynamicMenu[1]);
 
-            raw_updateButtons(&jeStisknuteTlacitko[0]); //blok pro update tlačítek
-            updateParseInput(&jeStisknuteTlacitko[0], &last_jeStisknuteTlacitko[0], &volby_dynamicMenu[0]);
-            vstupf = false;
-            if(volby_dynamicMenu[1] < minmax_wifi[0]) { volby_dynamicMenu[1] = minmax_wifi[1]; } if(volby_dynamicMenu[1] > minmax_wifi[1]) { volby_dynamicMenu[1] = minmax_wifi[0]; }
+              raw_updateButtons(&jeStisknuteTlacitko[0]); //blok pro update tlačítek
+              updateParseInput(&jeStisknuteTlacitko[0], &last_jeStisknuteTlacitko[0], &volby_dynamicMenu[0]);
+              vstupf = false;
+              if(volby_dynamicMenu[1] < minmax_wifi[0]) { volby_dynamicMenu[1] = minmax_wifi[1]; } if(volby_dynamicMenu[1] > minmax_wifi[1]) { volby_dynamicMenu[1] = minmax_wifi[0]; }
             }
             Serial.println(volby_dynamicMenu[1]);
             wifi_ssid = wifi_name[volby_dynamicMenu[1]][0].c_str();
