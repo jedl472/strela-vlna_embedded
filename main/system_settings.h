@@ -3,7 +3,7 @@
 //-------------------------------- obecne ----------------------------------------
 #define DEBUG_MODE 1
 #define ADMIN_TAG "1deb5c1d031080"
-#define VERSION_INFO "1.1 beta"
+
 
 #define DEVICE_ID 1
 
