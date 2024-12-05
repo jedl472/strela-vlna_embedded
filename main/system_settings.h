@@ -2,7 +2,7 @@
 
 //-------------------------------- obecne ----------------------------------------
 #define DEBUG_MODE 1
-#define ADMIN_TAG "335aa91a000000"
+#define ADMIN_TAG "1deb5c1d031080"
 
 #define DEVICE_ID 2
 
