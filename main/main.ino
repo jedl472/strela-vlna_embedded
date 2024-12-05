@@ -77,7 +77,7 @@ void setup() {
 
   if (DEBUG_MODE) { Serial.println("Připojuji wifi"); }
 
-  WiFi.begin(wifi_name[volby_dynamicMenu[3]][0].c_str(), wifi_name[volby_dynamicMenu[3]][1]);
+  WiFi.begin(wifi_name[3][0].c_str(), wifi_name[3][1]);
   
   uint32_t millis_start = millis();
   display_message("Pripojuji wifi");
@@ -98,9 +98,9 @@ void setup() {
     }
     if (volby_dynamicMenu[2] == 1){
       Serial.println(volby_dynamicMenu[1]);
-      wifi_ssid = wifi_name[volby_dynamicMenu[1]][0].c_str();
-      wifi_password = wifi_name[volby_dynamicMenu[1]][1].c_str();
-      WiFi.begin(wifi_ssid, wifi_password);
+      String wifi_ssid = wifi_name[volby_dynamicMenu[1]][0];
+      String wifi_password = wifi_name[volby_dynamicMenu[1]][1];
+      WiFi.begin(wifi_ssid.c_str(), wifi_password.c_str());
     }
   }
 
@@ -305,12 +305,13 @@ void loop() {
               if(volby_dynamicMenu[1] < minmax_wifi[0]) { volby_dynamicMenu[1] = minmax_wifi[1]; } if(volby_dynamicMenu[1] > minmax_wifi[1]) { volby_dynamicMenu[1] = minmax_wifi[0]; }
             }
             Serial.println(volby_dynamicMenu[1]);
-            wifi_ssid = wifi_name[volby_dynamicMenu[1]][0].c_str();
-            wifi_password = wifi_name[volby_dynamicMenu[1]][1].c_str();
-            WiFi.begin(wifi_ssid, wifi_password);
+            String wifi_ssid = wifi_name[volby_dynamicMenu[1]][0];
+            String wifi_password = wifi_name[volby_dynamicMenu[1]][1];
+            WiFi.begin(wifi_ssid.c_str(), wifi_password.c_str());
             if(volby_dynamicMenu[1] < minmax[0]) { volby_dynamicMenu[1] = minmax[0]; } if(volby_dynamicMenu[1] > minmax[1]) { volby_dynamicMenu[1] = minmax[1]; }
 
-            // menu_uroven = 3;
+            isMainMenuActive = 0;
+            menu_uroven = 99;
           }
         } else if(menu_uroven == 2 ) { //2. uroven - vraceni akce
           if(posledniAkce["typ"] == "akce") {

@@ -3,7 +3,7 @@
 //-------------------------------- obecne ----------------------------------------
 #define DEBUG_MODE 1
 #define ADMIN_TAG "1deb5c1d031080"
-#define VERSION_INFO "1.0"
+#define VERSION_INFO "1.1 wifi"
 
 #define DEVICE_ID 2
 
