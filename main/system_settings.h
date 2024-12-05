@@ -3,9 +3,9 @@
 //-------------------------------- obecne ----------------------------------------
 #define DEBUG_MODE 1
 #define ADMIN_TAG "1deb5c1d031080"
-#define VERSION_INFO "1.1 wifi"
+#define VERSION_INFO "1.1 beta"
 
-#define DEVICE_ID 2
+#define DEVICE_ID 1
 
 inline String serverName = "https://strela-vlna.gchd.cz/api/cash";
 // inline String serverName = "http://192.168.22.7:80";
