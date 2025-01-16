@@ -5,7 +5,7 @@
 #define ADMIN_TAG "1deb5c1d031080"
 
 
-#define DEVICE_ID 1
+#define DEVICE_ID 2
 
 inline String serverName = "https://strela-vlna.gchd.cz/api/cash";
 // inline String serverName = "http://192.168.22.7:80";

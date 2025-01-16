@@ -7,8 +7,7 @@
 
 HTTPClient http;
 
-JsonDocument posledniAkce;
-
+JsonDocument posledniAkce; 
 int16_t request_overeni(String *_response_payload, String _tagIdString) {
   http.begin(serverName.c_str()); // start session
 
@@ -53,6 +52,7 @@ int16_t request_akce(String *_response_payload, String _tagIdString, uint8_t _ak
     jsonContainer["akce"] = String(_akce);               posledniAkce["akce"] = String(_akce);
     jsonContainer["uloha"] = String(_uloha);             posledniAkce["uloha"] = String(_uloha);
     jsonContainer["ctecka"] = String(DEVICE_ID);         posledniAkce["ctecka"] = String(DEVICE_ID);
+    jsonContainer["pocet"] = String(DEVICE_ID);         posledniAkce["pocet"] = String(DEVICE_ID);
 
               
     serializeJson(jsonContainer, requestBody);       

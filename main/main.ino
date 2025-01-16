@@ -190,7 +190,7 @@ void loop() {
 
           // ------------------ akce menu ------------------
 
-          uint8_t volbyUzivatele[2] = {1, 1}; //tato promena uklada volby uzivatele, nemeni se dynamicky jako volby_dynamicMenu, vykresluje se na display
+          uint8_t volbyUzivatele[3] = {1, 1, 0}; //tato promena uklada volby uzivatele, nemeni se dynamicky jako volby_dynamicMenu, vykresluje se na display
 
           int8_t volby_dynamicMenu[3] = {1, 1, 0}; //x(sipka doleva/doprava), y(sipka nahoru/dolu), potvrzení(enter/escape), meni se dynamicky funkci updateParseInput  DULEZITE: da se volne upravovat
           int8_t last_volbyY = 1;
@@ -206,7 +206,7 @@ void loop() {
             raw_updateButtons(&jeStisknuteTlacitko[0]); //blok pro update tlačítek
             updateParseInput(&jeStisknuteTlacitko[0], &last_jeStisknuteTlacitko[0], &volby_dynamicMenu[0]);
 
-            if(volby_dynamicMenu[1] > 1) { volby_dynamicMenu[1] = 0; } if(volby_dynamicMenu[1] < 0) { volby_dynamicMenu[1] = 1; } //omezeni jednotlivych vstupnich os
+            if(volby_dynamicMenu[1] > 2) { volby_dynamicMenu[1] = 0; } if(volby_dynamicMenu[1] < 0) { volby_dynamicMenu[1] = 2; } //omezeni jednotlivych vstupnich os
             if(volby_dynamicMenu[0] > 2) { volby_dynamicMenu[0] = 0; } if(volby_dynamicMenu[0] < 0) { volby_dynamicMenu[0] = 2; }
 
             if(last_volbyY != volby_dynamicMenu[1]) {  //pri prechazeni na ose y aby se spravne nastavovaly volbyUzivatele. Pouziva last_volbyY pro detekci zmeny
@@ -264,7 +264,7 @@ void loop() {
 
     uint8_t volbyUzivatele[2] = {0, 0}; //tato promena uklada volby uzivatele, nemeni se dynamicky jako volby_dynamicMenu
 
-    int8_t volby_dynamicMenu[3] = {0, 2, 0}; //x(sipka doleva/doprava), y(sipka nahoru/dolu), potvrzení(enter/escape), meni se dynamicky funkci updateParseInput  DULEZITE: da se volne upravovat
+    int8_t volby_dynamicMenu[3] = {0, 3, 0}; //x(sipka doleva/doprava), y(sipka nahoru/dolu), potvrzení(enter/escape), meni se dynamicky funkci updateParseInput  DULEZITE: da se volne upravovat
     uint8_t menu_uroven = 0;
 
     bool last_jeStisknuteTlacitko[5];
