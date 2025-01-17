@@ -4,7 +4,7 @@
 bool isMainMenuActive = 0;
 bool canBeMainMenuTurnedOn = 0;
 
-const int8_t menuInputPattern[6] = {1, -1, 1, -1, 1, -1}; //bindovani tlacitek
+const int8_t menuInputPattern[6] = {1, -1, -1, 1, 1, -1}; //bindovani tlacitek
 const int8_t menuOutputPattern[6] = {0, 0, 1, 1, 2, 2};
 
 void IRAM_ATTR menu_on_interrupt() { 

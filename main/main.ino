@@ -85,7 +85,7 @@ void setup() {
 
   if (WiFi.status() != WL_CONNECTED){
 
-    int8_t volby_dynamicMenu[3] = {0, 3, 0}; //x(sipka doleva/doprava), y(sipka nahoru/dolu), potvrzení(enter/escape), meni se dynamicky funkci updateParseInput  DULEZITE: da se volne upravovat      int8_t last_volbyY = 0;
+    int8_t volby_dynamicMenu[3] = {0, 0, 0}; //x(sipka doleva/doprava), y(sipka nahoru/dolu), potvrzení(enter/escape), meni se dynamicky funkci updateParseInput  DULEZITE: da se volne upravovat      int8_t last_volbyY = 0;
 
     bool last_jeStisknuteTlacitko[5] = {0, 0, 0, 0, 0};
     bool jeStisknuteTlacitko[5];
@@ -192,8 +192,8 @@ void loop() {
 
           uint8_t volbyUzivatele[3] = {1, 1, 1}; //tato promena uklada volby uzivatele, nemeni se dynamicky jako volby_dynamicMenu, vykresluje se na display
 
-          int8_t volby_dynamicMenu[3] = {1, 2, 0}; //x(sipka doleva/doprava), y(sipka nahoru/dolu), potvrzení(enter/escape), meni se dynamicky funkci updateParseInput  DULEZITE: da se volne upravovat
-          int8_t last_volbyY = 2;
+          int8_t volby_dynamicMenu[3] = {1, 0, 0}; //x(sipka doleva/doprava), y(sipka nahoru/dolu), potvrzení(enter/escape), meni se dynamicky funkci updateParseInput  DULEZITE: da se volne upravovat
+          int8_t last_volbyY = 0;
 
           bool last_jeStisknuteTlacitko[5] = {0, 0, 0, 0, 0};
           bool jeStisknuteTlacitko[5];
@@ -212,16 +212,16 @@ void loop() {
 
 
             if(last_volbyY != volby_dynamicMenu[1]) {  //pri prechazeni na ose y aby se spravne nastavovaly volbyUzivatele. Pouziva last_volbyY pro detekci zmeny
-              volbyUzivatele[2-last_volbyY] = volby_dynamicMenu[0];
-              volby_dynamicMenu[0] = volbyUzivatele[2-volby_dynamicMenu[1]];
+              volbyUzivatele[last_volbyY] = volby_dynamicMenu[0];
+              volby_dynamicMenu[0] = volbyUzivatele[volby_dynamicMenu[1]];
               last_volbyY = volby_dynamicMenu[1];
             } else {
-              volbyUzivatele[2-volby_dynamicMenu[1]] = volby_dynamicMenu[0];
+              volbyUzivatele[volby_dynamicMenu[1]] = volby_dynamicMenu[0];
             }
 
             if(volby_dynamicMenu[1] > 2) { volby_dynamicMenu[1] = 0; } if(volby_dynamicMenu[1] < 0) { volby_dynamicMenu[1] = 2; } //omezeni jednotlivych vstupnich os
-            if((volby_dynamicMenu[0] > 2) && (volby_dynamicMenu[1] != 0)) { volby_dynamicMenu[0] = 0; } if ((volby_dynamicMenu[0] > 9) && (volby_dynamicMenu[1] = 0)) { volby_dynamicMenu[0] = 9; }
-            if((volby_dynamicMenu[0] < 0) && (volby_dynamicMenu[1] != 0)) { volby_dynamicMenu[0] = 2; } if ((volby_dynamicMenu[0] < 1) && (volby_dynamicMenu[1] = 0)) { volby_dynamicMenu[0] = 0; }
+            if((volby_dynamicMenu[0] > 2) && (volby_dynamicMenu[1] != 2)) { volby_dynamicMenu[0] = 0; } if ((volby_dynamicMenu[0] > 9) && (volby_dynamicMenu[1] = 2)) { volby_dynamicMenu[0] = 9; }
+            if((volby_dynamicMenu[0] < 0) && (volby_dynamicMenu[1] != 2)) { volby_dynamicMenu[0] = 2; } if ((volby_dynamicMenu[0] < 1) && (volby_dynamicMenu[1] = 2)) { volby_dynamicMenu[0] = 1; }
             
             delay(10);
 
@@ -271,7 +271,7 @@ void loop() {
 
     uint8_t volbyUzivatele[2] = {0, 0}; //tato promena uklada volby uzivatele, nemeni se dynamicky jako volby_dynamicMenu
 
-    int8_t volby_dynamicMenu[3] = {0, 3, 0}; //x(sipka doleva/doprava), y(sipka nahoru/dolu), potvrzení(enter/escape), meni se dynamicky funkci updateParseInput  DULEZITE: da se volne upravovat
+    int8_t volby_dynamicMenu[3] = {0, 0, 0}; //x(sipka doleva/doprava), y(sipka nahoru/dolu), potvrzení(enter/escape), meni se dynamicky funkci updateParseInput  DULEZITE: da se volne upravovat
     uint8_t menu_uroven = 0;
 
     bool last_jeStisknuteTlacitko[5];
@@ -285,10 +285,10 @@ void loop() {
 
       if(volby_dynamicMenu[2] >= 1) { //zmacknuti enter
         if(menu_uroven == 0) { //0. uroven - menu
-          if(volby_dynamicMenu[1] == 3) {
+          if(volby_dynamicMenu[1] == 0) {
             isMainMenuActive = 0;
             display_message("");
-          } else if(volby_dynamicMenu[1] == 2) {
+          } else if(volby_dynamicMenu[1] == 1) {
             if(posledniAkce["typ"] == "akce") {
               menu_uroven = 2;
             } else {
@@ -296,9 +296,9 @@ void loop() {
               isMainMenuActive = 0;
               menu_uroven = 99;
             }
-          } else if(volby_dynamicMenu[1] == 1) {
+          } else if(volby_dynamicMenu[1] == 2) {
             menu_uroven = 1;
-          } else if(volby_dynamicMenu[1] == 0) {
+          } else if(volby_dynamicMenu[1] == 3) {
             volby_dynamicMenu[1] = 3;
             uint8_t minmax_wifi[2] = {0,3};
 
