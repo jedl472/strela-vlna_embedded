@@ -48,17 +48,24 @@ void display_cteni_menu(int8_t *_pozice, uint8_t *_data, String _nazevTymu, Stri
   u8g2.drawStr(0, 37, "------------------------------------------------------------");
   u8g2.drawStr(5, 44, "Typ ulohy: ");
   u8g2.drawStr(64, 44, ulohaToString(String(_data[0])).c_str());
-  u8g2.drawStr(5, 55, "Typ akce:  ");
+  u8g2.drawStr(5, 54, "Typ akce:  ");
 
   u8g2.setDrawColor(0);
-  u8g2.drawBox(64, 49, 64, 10);
+  u8g2.drawBox(64, 47, 64, 10);
   u8g2.setDrawColor(1);
 
   u8g2.drawStr(64, 54, akceToString(String(_data[1])).c_str());
 
+  u8g2.setDrawColor(0);
+  u8g2.drawBox(64, 57, 64, 10);
+  u8g2.setDrawColor(1);
+
+  u8g2.drawStr(64, 64, String(_data[2]).c_str());
+  u8g2.drawStr(5, 64, "Typ akce:  ");
 
   u8g2.setDrawColor(0);
-  u8g2.drawBox(0, 40, 5, 30);
+  u8g2.drawBox(0, 38, 5, 30);
+  
   u8g2.setDrawColor(1);
   
   u8g2.drawStr(0, ((2-(*_pozice))*10)+44, ">");

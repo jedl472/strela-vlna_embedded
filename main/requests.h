@@ -23,7 +23,7 @@ int16_t request_overeni(String *_response_payload, String _tagIdString);
 Ověří zprávnost tagu, do _response_payload uloží odpověď a _tagIdString je tag k ověření.
 */
 
-int16_t request_akce(String *_response_payload, String _tagIdString, uint8_t _akce, uint8_t _uloha);
+int16_t request_akce(String *_response_payload, String _tagIdString, uint8_t _akce, uint8_t _uloha, uint8_t _pocet);
 /*
 Udělá akci, odpověd uloží do _response_payload. Data do requestu bere ze zbytku promennych.
 */

@@ -1,3 +1,4 @@
+#include <stdint.h>
 #include "requests.h"
 #include "system_settings.h"
 #include "auth.h"
@@ -41,7 +42,7 @@ int16_t request_overeni(String *_response_payload, String _tagIdString) {
   return (httpResponseCode);
 }
 
-int16_t request_akce(String *_response_payload, String _tagIdString, uint8_t _akce, uint8_t _uloha) {
+int16_t request_akce(String *_response_payload, String _tagIdString, uint8_t _akce, uint8_t _uloha, uint8_t _pocet) {
   http.begin(serverName.c_str());
 
   String requestBody;
@@ -52,7 +53,7 @@ int16_t request_akce(String *_response_payload, String _tagIdString, uint8_t _ak
     jsonContainer["akce"] = String(_akce);               posledniAkce["akce"] = String(_akce);
     jsonContainer["uloha"] = String(_uloha);             posledniAkce["uloha"] = String(_uloha);
     jsonContainer["ctecka"] = String(DEVICE_ID);         posledniAkce["ctecka"] = String(DEVICE_ID);
-    jsonContainer["pocet"] = String(DEVICE_ID);         posledniAkce["pocet"] = String(DEVICE_ID);
+    jsonContainer["pocet"] = String(_pocet);             posledniAkce["pocet"] = String(_pocet);
 
               
     serializeJson(jsonContainer, requestBody);       

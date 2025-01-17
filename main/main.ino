@@ -190,10 +190,10 @@ void loop() {
 
           // ------------------ akce menu ------------------
 
-          uint8_t volbyUzivatele[3] = {1, 1, 0}; //tato promena uklada volby uzivatele, nemeni se dynamicky jako volby_dynamicMenu, vykresluje se na display
+          uint8_t volbyUzivatele[3] = {1, 1, 1}; //tato promena uklada volby uzivatele, nemeni se dynamicky jako volby_dynamicMenu, vykresluje se na display
 
-          int8_t volby_dynamicMenu[3] = {1, 1, 0}; //x(sipka doleva/doprava), y(sipka nahoru/dolu), potvrzení(enter/escape), meni se dynamicky funkci updateParseInput  DULEZITE: da se volne upravovat
-          int8_t last_volbyY = 1;
+          int8_t volby_dynamicMenu[3] = {1, 2, 0}; //x(sipka doleva/doprava), y(sipka nahoru/dolu), potvrzení(enter/escape), meni se dynamicky funkci updateParseInput  DULEZITE: da se volne upravovat
+          int8_t last_volbyY = 2;
 
           bool last_jeStisknuteTlacitko[5] = {0, 0, 0, 0, 0};
           bool jeStisknuteTlacitko[5];
@@ -205,18 +205,25 @@ void loop() {
 
             raw_updateButtons(&jeStisknuteTlacitko[0]); //blok pro update tlačítek
             updateParseInput(&jeStisknuteTlacitko[0], &last_jeStisknuteTlacitko[0], &volby_dynamicMenu[0]);
+            // Serial.print(volby_dynamicMenu[0]);
+            // Serial.print(volby_dynamicMenu[1]);
+            // Serial.println(volby_dynamicMenu[2]);
+            // Serial.println(volbyUzivatele[2]);
 
-            if(volby_dynamicMenu[1] > 2) { volby_dynamicMenu[1] = 0; } if(volby_dynamicMenu[1] < 0) { volby_dynamicMenu[1] = 2; } //omezeni jednotlivych vstupnich os
-            if(volby_dynamicMenu[0] > 2) { volby_dynamicMenu[0] = 0; } if(volby_dynamicMenu[0] < 0) { volby_dynamicMenu[0] = 2; }
 
             if(last_volbyY != volby_dynamicMenu[1]) {  //pri prechazeni na ose y aby se spravne nastavovaly volbyUzivatele. Pouziva last_volbyY pro detekci zmeny
-              volbyUzivatele[1-last_volbyY] = volby_dynamicMenu[0];
-              volby_dynamicMenu[0] = volbyUzivatele[1-volby_dynamicMenu[1]];
+              volbyUzivatele[2-last_volbyY] = volby_dynamicMenu[0];
+              volby_dynamicMenu[0] = volbyUzivatele[2-volby_dynamicMenu[1]];
               last_volbyY = volby_dynamicMenu[1];
             } else {
-              volbyUzivatele[1-volby_dynamicMenu[1]] = volby_dynamicMenu[0];
+              volbyUzivatele[2-volby_dynamicMenu[1]] = volby_dynamicMenu[0];
             }
 
+            if(volby_dynamicMenu[1] > 2) { volby_dynamicMenu[1] = 0; } if(volby_dynamicMenu[1] < 0) { volby_dynamicMenu[1] = 2; } //omezeni jednotlivych vstupnich os
+            if((volby_dynamicMenu[0] > 2) && (volby_dynamicMenu[1] != 0)) { volby_dynamicMenu[0] = 0; } if ((volby_dynamicMenu[0] > 9) && (volby_dynamicMenu[1] = 0)) { volby_dynamicMenu[0] = 9; }
+            if((volby_dynamicMenu[0] < 0) && (volby_dynamicMenu[1] != 0)) { volby_dynamicMenu[0] = 2; } if ((volby_dynamicMenu[0] < 1) && (volby_dynamicMenu[1] = 0)) { volby_dynamicMenu[0] = 0; }
+            
+            delay(10);
 
             if(volby_dynamicMenu[2] >= 1) {
               display_message("posilam data");
@@ -226,7 +233,7 @@ void loop() {
               delay(500);
 
               String response_payload; //odpoved od serveru
-              int16_t httpResponseCode = request_akce(&response_payload, tagIdString, volbyUzivatele[1], volbyUzivatele[0]);
+              int16_t httpResponseCode = request_akce(&response_payload, tagIdString, volbyUzivatele[1], volbyUzivatele[0], volbyUzivatele[2]);
 
               EepromStream eepromStream(0, 512);
               serializeJson(posledniAkce, eepromStream);
