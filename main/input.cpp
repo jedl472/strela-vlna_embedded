@@ -1,3 +1,4 @@
+#include <stdint.h>
 #include "input.h"
 #include "system_settings.h"
 
@@ -21,6 +22,8 @@ void init_input() {
 
   attachInterrupt(TL4, menu_on_interrupt, RISING);
 }
+
+
 
 void updateParseInput(bool *_inputButtons, bool *_lastInputButtons, int8_t *_output) { 
   for(int i = 0; i < 6; i++) { //kdyz se tady vymeni < za <=, je to silenej stack overflow, staci si vyprintit jak vypada _output

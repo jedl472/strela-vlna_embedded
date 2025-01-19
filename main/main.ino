@@ -77,7 +77,7 @@ void setup() {
 
   if (DEBUG_MODE) { Serial.println("Připojuji wifi"); }
 
-  WiFi.begin(wifi_name[3][0].c_str(), wifi_name[3][1]);
+  WiFi.begin(wifi_name[1][0].c_str(), wifi_name[1][1]);
   
   uint32_t millis_start = millis();
   display_message("Pripojuji wifi");
@@ -87,8 +87,8 @@ void setup() {
 
     int8_t volby_dynamicMenu[3] = {0, 0, 0}; //x(sipka doleva/doprava), y(sipka nahoru/dolu), potvrzení(enter/escape), meni se dynamicky funkci updateParseInput  DULEZITE: da se volne upravovat      int8_t last_volbyY = 0;
 
-    bool last_jeStisknuteTlacitko[5] = {0, 0, 0, 0, 0};
-    bool jeStisknuteTlacitko[5];
+    bool last_jeStisknuteTlacitko[6] = {0, 0, 0, 0, 0, 0};
+    bool jeStisknuteTlacitko[6];
 
     while (volby_dynamicMenu[2] == 0 ){
       display_wifi_menu(volby_dynamicMenu[1]);
@@ -195,8 +195,10 @@ void loop() {
           int8_t volby_dynamicMenu[3] = {1, 0, 0}; //x(sipka doleva/doprava), y(sipka nahoru/dolu), potvrzení(enter/escape), meni se dynamicky funkci updateParseInput  DULEZITE: da se volne upravovat
           int8_t last_volbyY = 0;
 
-          bool last_jeStisknuteTlacitko[5] = {0, 0, 0, 0, 0};
-          bool jeStisknuteTlacitko[5];
+          bool last_jeStisknuteTlacitko[6] = {0, 0, 0, 0, 0, 0};
+          bool jeStisknuteTlacitko[6] ;
+          uint8_t nas_menu[6] = {2, 0, 1, 1, 2, 0};
+
 
           display_clear();
 
@@ -204,26 +206,81 @@ void loop() {
             display_cteni_menu(&volby_dynamicMenu[1], &volbyUzivatele[0], nazevTymu, stavUctu);
 
             raw_updateButtons(&jeStisknuteTlacitko[0]); //blok pro update tlačítek
-            updateParseInput(&jeStisknuteTlacitko[0], &last_jeStisknuteTlacitko[0], &volby_dynamicMenu[0]);
+            // for(int i = 0; i < 6; i++){
+            // Serial.print(i);
+            // Serial.print(jeStisknuteTlacitko[i]);
+            // }
+            // Serial.println(volbyUzivatele[2]);
+            // Serial.println();
+
+            if (type_of_buttone_menu == 0){
+              updateParseInput(&jeStisknuteTlacitko[0], &last_jeStisknuteTlacitko[0], &volby_dynamicMenu[0]);
+              
+              if(last_volbyY != volby_dynamicMenu[1]) {  //pri prechazeni na ose y aby se spravne nastavovaly volbyUzivatele. Pouziva last_volbyY pro detekci zmeny
+                volbyUzivatele[last_volbyY] = volby_dynamicMenu[0];
+                volby_dynamicMenu[0] = volbyUzivatele[volby_dynamicMenu[1]];
+                last_volbyY = volby_dynamicMenu[1];
+              } else {
+                volbyUzivatele[volby_dynamicMenu[1]] = volby_dynamicMenu[0];
+              }
+
+              if(volby_dynamicMenu[1] > 2) { volby_dynamicMenu[1] = 0; } if(volby_dynamicMenu[1] < 0) { volby_dynamicMenu[1] = 2; } //omezeni jednotlivych vstupnich os
+              if((volby_dynamicMenu[0] > 2) && (volby_dynamicMenu[1] != 2)) { volby_dynamicMenu[0] = 0; } if ((volby_dynamicMenu[1] == 2) && (volby_dynamicMenu[0] > 9)) { volby_dynamicMenu[0] = 9; }
+              if((volby_dynamicMenu[0] < 0) && (volby_dynamicMenu[1] != 2)) { volby_dynamicMenu[0] = 2; } if ((volby_dynamicMenu[1] == 2) && (volby_dynamicMenu[0] < 1)) { volby_dynamicMenu[0] = 1; }
+              // if((volby_dynamicMenu[0] > 2)) { volby_dynamicMenu[0] = 0; } if ((volby_dynamicMenu[0] > 9) && (volby_dynamicMenu[1] = 2)) { volby_dynamicMenu[0] = 9; }
+              // if((volby_dynamicMenu[0] < 0)) { volby_dynamicMenu[0] = 2; } if ((volby_dynamicMenu[0] < 1) && (volby_dynamicMenu[1] = 2)) { volby_dynamicMenu[0] = 1; }
+
             // Serial.print(volby_dynamicMenu[0]);
             // Serial.print(volby_dynamicMenu[1]);
             // Serial.println(volby_dynamicMenu[2]);
-            // Serial.println(volbyUzivatele[2]);
+              
+              delay(10);
+            }
+            else{
+              uint8_t help_buffer[3] = {1,0,0};
+              uint8_t game_buffer[6] = {0,0,0,0,0,0};
+              for(uint8_t i = 0;i < 6;i++){
+                if (jeStisknuteTlacitko[i] == 1){
+                  // Serial.print(i);
+                  game_buffer[help_buffer[0]] = i;
+                  help_buffer[0] += 1;
+                  if (i<3){
+                    help_buffer[1] += 1;
+                  }
+                  else{
+                    help_buffer[2] += 1;
+                  }
 
+                }
+              }
+              if ((help_buffer[1] == 1) && (help_buffer[2] == 1)){
+                for(uint8_t i = 0;i<3; i++){
+                  if (jeStisknuteTlacitko[i] == 1){
+                    volbyUzivatele[1] = nas_menu[i];
+                    Serial.print(nas_menu[i]);
+                  }
+                }
+                for(uint8_t i = 3;i<6; i++){
+                  if (jeStisknuteTlacitko[i] == 1){
+                    volbyUzivatele[0] = nas_menu[i];
+                    Serial.print(i);
+                    Serial.println(nas_menu[i]);
+                  }
+                }
+              }
 
-            if(last_volbyY != volby_dynamicMenu[1]) {  //pri prechazeni na ose y aby se spravne nastavovaly volbyUzivatele. Pouziva last_volbyY pro detekci zmeny
-              volbyUzivatele[last_volbyY] = volby_dynamicMenu[0];
-              volby_dynamicMenu[0] = volbyUzivatele[volby_dynamicMenu[1]];
-              last_volbyY = volby_dynamicMenu[1];
-            } else {
-              volbyUzivatele[volby_dynamicMenu[1]] = volby_dynamicMenu[0];
+              uint8_t exit[6] = {0,0,0,1,0,1};
+              if(jeStisknuteTlacitko == exit){
+                volby_dynamicMenu[2] = -1;
+              }
+            Serial.print(volbyUzivatele[0]);
+            Serial.print(volbyUzivatele[1]);
+            Serial.println(volbyUzivatele[2]);
+            // Serial.println();
+              
             }
 
-            if(volby_dynamicMenu[1] > 2) { volby_dynamicMenu[1] = 0; } if(volby_dynamicMenu[1] < 0) { volby_dynamicMenu[1] = 2; } //omezeni jednotlivych vstupnich os
-            if((volby_dynamicMenu[0] > 2) && (volby_dynamicMenu[1] != 2)) { volby_dynamicMenu[0] = 0; } if ((volby_dynamicMenu[0] > 9) && (volby_dynamicMenu[1] = 2)) { volby_dynamicMenu[0] = 9; }
-            if((volby_dynamicMenu[0] < 0) && (volby_dynamicMenu[1] != 2)) { volby_dynamicMenu[0] = 2; } if ((volby_dynamicMenu[0] < 1) && (volby_dynamicMenu[1] = 2)) { volby_dynamicMenu[0] = 1; }
-            
-            delay(10);
+
 
             if(volby_dynamicMenu[2] >= 1) {
               display_message("posilam data");

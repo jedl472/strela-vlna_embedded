@@ -10,13 +10,15 @@
 inline String serverName = "https://strela-vlna.gchd.cz/api/cash";
 // inline String serverName = "http://192.168.22.7:80";
 
-
+// seznam  wifi připojení
 inline String wifi_name[4][2]{
   {"Acd","Zabozrout123+"},
   {"Simon774","skaut123"},
   {"GAM2","JejTGame123+"},
   {"STRVLN2","StVl2024"},
 } ;
+
+#define type_of_buttone_menu 1
 
 //--------------------------------- piny -----------------------------------------
 #define display_clk 18   // Clock: RS   (označení pinů na samotné desce displeje)
