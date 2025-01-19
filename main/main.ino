@@ -257,28 +257,56 @@ void loop() {
                 for(uint8_t i = 0;i<3; i++){
                   if (jeStisknuteTlacitko[i] == 1){
                     volbyUzivatele[1] = nas_menu[i];
-                    Serial.print(nas_menu[i]);
+                    // Serial.print(nas_menu[i]);
                   }
                 }
                 for(uint8_t i = 3;i<6; i++){
                   if (jeStisknuteTlacitko[i] == 1){
                     volbyUzivatele[0] = nas_menu[i];
-                    Serial.print(i);
-                    Serial.println(nas_menu[i]);
+                    // Serial.print(i);
+                    // Serial.println(nas_menu[i]);
                   }
+                }
+                volby_dynamicMenu[2] = 1;
+              }
+
+            // Serial.print(volbyUzivatele[0]);
+            // Serial.print(volbyUzivatele[1]);
+            // Serial.println(volbyUzivatele[2]);
+              bool option[2] = {1,1};
+              bool exit[6] = {0,0,0,1,0,1};
+              bool back[6] = {0,1,1,0,0,0};
+              for (int i = 0;  i < 6; i++) {
+                if( jeStisknuteTlacitko[i] != exit[i] ) {
+                  option[0] = 0;
+                }
+                if( jeStisknuteTlacitko[i] != back[i] ) {
+                  option[1] = 0;
+                } }
+              if(option[0]){
+                volby_dynamicMenu[2] = -1;
+              }
+              if(option[1]){
+                if(posledniAkce["typ"] == "akce") {
+
+                int16_t httpResponseCode = request_vratit(posledniAkce);
+                posledniAkce["typ"] = "";
+
+                EepromStream eepromStream(0, 512);
+                serializeJson(posledniAkce, eepromStream);
+                EEPROM.commit();
+                
+                if(httpResponseCode != 200) {
+                  display_message("chyba serveru, neodeslano");
+                } else {
+                  display_message("");
+                }
+                
                 }
               }
 
-              uint8_t exit[6] = {0,0,0,1,0,1};
-              if(jeStisknuteTlacitko == exit){
-                volby_dynamicMenu[2] = -1;
-              }
-            Serial.print(volbyUzivatele[0]);
-            Serial.print(volbyUzivatele[1]);
-            Serial.println(volbyUzivatele[2]);
             // Serial.println();
-              
-            }
+              }
 
 
 
@@ -299,7 +327,12 @@ void loop() {
               JsonDocument jsonResponse;
               deserializeJson(jsonResponse, response_payload);
 
+              if (type_of_buttone_menu != 1){
               amIFinished = true;
+              }
+              else{
+                volby_dynamicMenu[2] = 0;
+              }
 
               if(httpResponseCode != 200) {
                 display_message("chyba serveru, neodeslano"); // nechceme dat misto neodeslano error code?
@@ -310,6 +343,7 @@ void loop() {
               } else {
                 display_message("chyba");
               }
+              display_clear();
             } else if(volby_dynamicMenu[2] <= -1) {
               amIFinished = true;
               display_message("");
