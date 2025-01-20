@@ -16,7 +16,7 @@ inline String serverName = "https://strela-vlna.gchd.cz/api/cash";
 inline String wifi_name[4][2]{
   {"Acd","Zabozrout123+"},
   {"Simon774","skaut123"},
-  {"GAM2","JejTGame123+"},
+  {"RLGUEST2","RijoLabs2024+"},
   {"STRVLN2","StVl2024"},
 } ;
 
