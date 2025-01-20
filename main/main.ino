@@ -305,13 +305,14 @@ void loop() {
                 serializeJson(posledniAkce, eepromStream);
                 EEPROM.commit();
                 
-                if (type_of_buttone_menu == 1){
                 display_clear();
-                }
+
                 if(httpResponseCode != 200) {
                   display_message("chyba serveru, neodeslano");
                 } else {
-                  // display_message("");
+                  if (type_of_buttone_menu != 1){
+                    display_message("");
+                  }
                 }
                 
                 }
@@ -346,16 +347,16 @@ void loop() {
                 volby_dynamicMenu[2] = 0;
               }
               
-              if (type_of_buttone_menu == 1){
               display_clear();
-              }
               
               if(httpResponseCode != 200) {
                 display_message("chyba serveru, neodeslano"); // nechceme dat misto neodeslano error code?
               } else if (jsonResponse["key"] == "n") {
                 display_message("tym nema dostatek penez");
               } else if (jsonResponse["key"] == "k") {
-                // display_message("");
+                if (type_of_buttone_menu != 1){
+                  display_message("");
+                }
               } else {
                 display_message("chyba");
               }
