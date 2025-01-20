@@ -31,6 +31,9 @@ Všechny použité knihovny v kódu se dají najít v strela-vlna_embedded/libra
 PN532_I2C pn532i2c(Wire);
 PN532 nfc_pn532(pn532i2c);
 
+// extern int8_t type_of_buttone_menu =1;
+
+
 
 /*
  ------------------------------------ Setup + loop --------------------------------------
@@ -46,10 +49,16 @@ void setup() {
 
   EEPROM.begin(512);
 
-  EepromStream eepromStream(0, 512); //vyčtení poslední akce z EEPROM
+  EepromStream eepromStream(0, 510); //vyčtení poslední akce z EEPROM
   deserializeJson(posledniAkce, eepromStream);
-
   init_input();
+  EepromStream s(510, 515);
+  // if (s.readString().toInt()){
+    type_of_buttone_menu = s.readString().toInt();
+  // }
+  // else {
+  //   Serial.println(s.readString().toInt());
+  // }
 
   if (DEBUG_MODE) { Serial.println("Nastavuji display"); }
   
@@ -197,7 +206,7 @@ void loop() {
 
           bool last_jeStisknuteTlacitko[6] = {0, 0, 0, 0, 0, 0};
           bool jeStisknuteTlacitko[6] ;
-          uint8_t nas_menu[6] = {2, 0, 1, 1, 2, 0};
+          uint8_t nas_menu[6] = {1, 2, 0, 1, 2, 0};
 
 
           display_clear();
@@ -296,10 +305,11 @@ void loop() {
                 serializeJson(posledniAkce, eepromStream);
                 EEPROM.commit();
                 
+                display_clear();
                 if(httpResponseCode != 200) {
                   display_message("chyba serveru, neodeslano");
                 } else {
-                  display_message("");
+                  // display_message("");
                 }
                 
                 }
@@ -334,16 +344,18 @@ void loop() {
                 volby_dynamicMenu[2] = 0;
               }
 
+              display_clear();
+              
               if(httpResponseCode != 200) {
                 display_message("chyba serveru, neodeslano"); // nechceme dat misto neodeslano error code?
               } else if (jsonResponse["key"] == "n") {
                 display_message("tym nema dostatek penez");
               } else if (jsonResponse["key"] == "k") {
-                display_message("");
+                // display_message("");
               } else {
                 display_message("chyba");
               }
-              display_clear();
+              
             } else if(volby_dynamicMenu[2] <= -1) {
               amIFinished = true;
               display_message("");
@@ -369,10 +381,11 @@ void loop() {
     bool jeStisknuteTlacitko[5];
 
     while(isMainMenuActive) {// smycka v main menu
-      uint8_t minmax[2] = {0,3}; // vrchní a spodní element listu
+      uint8_t minmax[2] = {0,4}; // vrchní a spodní element listu
       raw_updateButtons(&jeStisknuteTlacitko[0]); //blok pro update tlačítek
       updateParseInput(&jeStisknuteTlacitko[0], &last_jeStisknuteTlacitko[0], &volby_dynamicMenu[0]);
-      if(volby_dynamicMenu[1] < minmax[0]) { volby_dynamicMenu[1] = minmax[0]; } if(volby_dynamicMenu[1] > minmax[1]) { volby_dynamicMenu[1] = minmax[1]; } //omezeni os
+      if(volby_dynamicMenu[1] < minmax[0]) { volby_dynamicMenu[1] = minmax[1]; } if(volby_dynamicMenu[1] > minmax[1]) { volby_dynamicMenu[1] = minmax[0]; } //omezeni os
+      if((volby_dynamicMenu[1] > 1)&&(menu_uroven == 4)) { volby_dynamicMenu[1] = 0; }
 
       if(volby_dynamicMenu[2] >= 1) { //zmacknuti enter
         if(menu_uroven == 0) { //0. uroven - menu
@@ -388,6 +401,7 @@ void loop() {
               menu_uroven = 99;
             }
           } else if(volby_dynamicMenu[1] == 2) {
+            volby_dynamicMenu[1] = 0;
             menu_uroven = 1;
           } else if(volby_dynamicMenu[1] == 3) {
             volby_dynamicMenu[1] = 3;
@@ -410,6 +424,10 @@ void loop() {
 
             isMainMenuActive = 0;
             menu_uroven = 99;
+          } else if(volby_dynamicMenu[1] == 4){
+            // if type_of_buttone_menu =
+            volby_dynamicMenu[1] = 0;
+            menu_uroven = 4;
           }
         } else if(menu_uroven == 2 ) { //2. uroven - vraceni akce
           if(posledniAkce["typ"] == "akce") {
@@ -431,7 +449,26 @@ void loop() {
             menu_uroven = 99;
           }
         }
-      } else if(volby_dynamicMenu[2] <= -1) { //zmacknuti esc
+        else if(menu_uroven == 4){
+          EepromStream s(510, 512);
+          if (volby_dynamicMenu[1] == 0){
+            type_of_buttone_menu = 0;
+            s.print("00");
+          }
+          if (volby_dynamicMenu[1] == 1){
+            type_of_buttone_menu = 1;
+            s.print("01");
+          }
+          s.flush();
+          Serial.println(type_of_buttone_menu);
+          menu_uroven = 0;
+          volby_dynamicMenu[1] = 4;
+
+          
+          
+
+        }
+      } else if(volby_dynamicMenu[2] < 0) { //zmacknuti esc
         if(menu_uroven == 0) {
           isMainMenuActive = 0;
           display_message("");
@@ -439,6 +476,9 @@ void loop() {
           menu_uroven = 0;
         } else if(menu_uroven == 2) {
           menu_uroven = 0;
+        } else if(menu_uroven == 4) {
+          menu_uroven = 0;
+          volby_dynamicMenu[1] = 4;
         }
       } else {
         display_info_menu(menu_uroven, volby_dynamicMenu[1], posledniAkce["uloha"], posledniAkce["akce"], posledniAkce["tym"], WiFi.localIP().toString(), WiFi.gatewayIP().toString(), serverName);

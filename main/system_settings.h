@@ -1,3 +1,5 @@
+#include <sys/_stdint.h>
+//#include <system_seting.cpp>
 //soubor pro definovani systemovych nastaveni
 
 //-------------------------------- obecne ----------------------------------------
@@ -18,7 +20,7 @@ inline String wifi_name[4][2]{
   {"STRVLN2","StVl2024"},
 } ;
 
-#define type_of_buttone_menu 1
+inline uint8_t type_of_buttone_menu = 1;
 
 //--------------------------------- piny -----------------------------------------
 #define display_clk 18   // Clock: RS   (označení pinů na samotné desce displeje)
