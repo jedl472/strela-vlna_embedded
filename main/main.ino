@@ -305,7 +305,9 @@ void loop() {
                 serializeJson(posledniAkce, eepromStream);
                 EEPROM.commit();
                 
+                if (type_of_buttone_menu == 1){
                 display_clear();
+                }
                 if(httpResponseCode != 200) {
                   display_message("chyba serveru, neodeslano");
                 } else {
@@ -344,7 +346,7 @@ void loop() {
                 volby_dynamicMenu[2] = 0;
               }
               
-              if (type_of_buttone_menu != 1){
+              if (type_of_buttone_menu == 1){
               display_clear();
               }
               
