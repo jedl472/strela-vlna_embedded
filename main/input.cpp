@@ -1,10 +1,11 @@
+#include <stdint.h>
 #include "input.h"
 #include "system_settings.h"
 
 bool isMainMenuActive = 0;
 bool canBeMainMenuTurnedOn = 0;
 
-const int8_t menuInputPattern[6] = {1, -1, 1, -1, 1, -1}; //bindovani tlacitek
+const int8_t menuInputPattern[6] = {1, -1, -1, 1, 1, -1}; //bindovani tlacitek
 const int8_t menuOutputPattern[6] = {0, 0, 1, 1, 2, 2};
 
 void IRAM_ATTR menu_on_interrupt() { 
@@ -21,6 +22,8 @@ void init_input() {
 
   attachInterrupt(TL4, menu_on_interrupt, RISING);
 }
+
+
 
 void updateParseInput(bool *_inputButtons, bool *_lastInputButtons, int8_t *_output) { 
   for(int i = 0; i < 6; i++) { //kdyz se tady vymeni < za <=, je to silenej stack overflow, staci si vyprintit jak vypada _output

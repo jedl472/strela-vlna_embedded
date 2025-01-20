@@ -1,3 +1,5 @@
+#include <sys/_stdint.h>
+//#include <system_seting.cpp>
 //soubor pro definovani systemovych nastaveni
 
 //-------------------------------- obecne ----------------------------------------
@@ -5,18 +7,20 @@
 #define ADMIN_TAG "1deb5c1d031080"
 
 
-#define DEVICE_ID 1
+#define DEVICE_ID 2
 
 inline String serverName = "https://strela-vlna.gchd.cz/api/cash";
 // inline String serverName = "http://192.168.22.7:80";
 
-
+// seznam  wifi připojení
 inline String wifi_name[4][2]{
   {"Acd","Zabozrout123+"},
   {"Simon774","skaut123"},
-  {"GAM2","JejTGame123+"},
+  {"RLGUEST2","RijoLabs2024+"},
   {"STRVLN2","StVl2024"},
 } ;
+
+inline uint8_t type_of_buttone_menu = 1;
 
 //--------------------------------- piny -----------------------------------------
 #define display_clk 18   // Clock: RS   (označení pinů na samotné desce displeje)

@@ -43,26 +43,34 @@ void display_cteni_menu(int8_t *_pozice, uint8_t *_data, String _nazevTymu, Stri
   u8g2.setFont(u8g2_font_5x8_tf);
   u8g2.drawStr(0, 21, "Nazev tymu: ");
   u8g2.drawStr(64, 21, _nazevTymu.c_str());
-  u8g2.drawStr(0, 31, "Stav uctu: ");
-  u8g2.drawStr(64, 31, _stavUctu.c_str());
-  u8g2.drawStr(0, 39, "------------------------------------------------------------");
-  u8g2.drawStr(5, 47, "Typ ulohy: ");
-  u8g2.drawStr(64, 47, ulohaToString(String(_data[0])).c_str());
-  u8g2.drawStr(5, 57, "Typ akce:  ");
+  u8g2.drawStr(0, 30, "Stav uctu: ");
+  u8g2.drawStr(64, 30, _stavUctu.c_str());
+  u8g2.drawStr(0, 37, "------------------------------------------------------------");
+  u8g2.drawStr(5, 44, "Typ ulohy: ");
+  u8g2.drawStr(64, 44, ulohaToString(String(_data[0])).c_str());
+  u8g2.drawStr(5, 54, "Typ akce:  ");
 
   u8g2.setDrawColor(0);
-  u8g2.drawBox(64, 49, 64, 10);
+  u8g2.drawBox(64, 47, 64, 10);
   u8g2.setDrawColor(1);
 
-  u8g2.drawStr(64, 57, akceToString(String(_data[1])).c_str());
+  u8g2.drawStr(64, 54, akceToString(String(_data[1])).c_str());
 
-
+  if (type_of_buttone_menu == 0){
   u8g2.setDrawColor(0);
-  u8g2.drawBox(0, 40, 5, 30);
+  u8g2.drawBox(64, 57, 64, 10);
+  u8g2.setDrawColor(1);
+
+  u8g2.drawStr(64, 64, String(_data[2]).c_str());
+  u8g2.drawStr(5, 64, "Pocet uloh:  ");
+  
+  u8g2.setDrawColor(0);
+  u8g2.drawBox(0, 38, 5, 30);
+  
   u8g2.setDrawColor(1);
   
-  u8g2.drawStr(0, ((1-(*_pozice))*10)+47, ">");
-
+  u8g2.drawStr(0, (((*_pozice))*10)+44, ">");
+  }
   u8g2.sendBuffer();
   u8g2.setFont(display_default_font);
 }
@@ -99,13 +107,16 @@ void display_info_menu(uint8_t display_page, uint8_t cursor_position, String pos
       u8g2.drawStr(5, 20, "vratit posledni akci");
       u8g2.drawStr(5, 30, "system info");
       u8g2.drawStr(5, 40, "wifi");
+      u8g2.drawStr(5, 50, "ovladani");
+      u8g2.drawStr(50, 50, String(type_of_buttone_menu).c_str());
+      
 
 
       u8g2.setDrawColor(0);
       u8g2.drawBox(0, 0, 5, 30);
       u8g2.setDrawColor(1);
 
-      u8g2.drawStr(0, ((3-cursor_position)*10)+10, ">");
+      u8g2.drawStr(0, ((cursor_position)*10)+10, ">");
 
       break;
 
@@ -158,6 +169,22 @@ void display_info_menu(uint8_t display_page, uint8_t cursor_position, String pos
 
 
       break;
+    case 4:
+      u8g2.setDrawColor(0);
+      u8g2.drawBox(0, 0, 128, 64);
+      u8g2.setDrawColor(1);
+
+      u8g2.drawXBM(64, 25, 80, 40, xbm_strela_vlna_logo_small);
+      u8g2.drawStr(5, 10, "wsad");
+      u8g2.drawStr(5, 20, "fast type");
+
+
+      u8g2.setDrawColor(0);
+      u8g2.drawBox(0, 0, 5, 30);
+      u8g2.setDrawColor(1);
+
+      u8g2.drawStr(0, ((cursor_position)*10)+10, ">");
+      break;
     default:
       break;
   }
@@ -173,8 +200,8 @@ void display_wifi_menu(uint8_t cursor_position){
   u8g2.setDrawColor(1);
 
   u8g2.drawXBM(64, 25, 80, 40, xbm_strela_vlna_logo_small);
-  for(int i = 1;i<5;i++){
-    u8g2.drawStr(5, i*10, wifi_name[4-i][0].c_str()); //chyba
+  for(int i = 0;i<4;i++){
+    u8g2.drawStr(5, i*10 + 10, wifi_name[i][0].c_str()); //chyba
     // u8g2.drawStr(5, i*10, "test"); //chyba
   }
 
@@ -182,7 +209,7 @@ void display_wifi_menu(uint8_t cursor_position){
   u8g2.drawBox(0, 0, 5, 30);
   u8g2.setDrawColor(1);
 
-  u8g2.drawStr(0, ((3-cursor_position)*10)+10, ">");
+  u8g2.drawStr(0, ((cursor_position)*10)+10, ">");
   u8g2.sendBuffer();
   u8g2.setFont(display_default_font);
 }

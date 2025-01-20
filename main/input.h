@@ -23,6 +23,7 @@ void raw_updateButtons(bool *_input);
 Vezme vstupy z tlačítek (přes DigitalRead) a umístí je do proměnné _input (bool[6])
 */
 
+
 void updateParseInput(bool *_inputButtons, bool *_lastInputButtons, int8_t *_output);
 /*
 Funkce převádějící vstup z tlačítek do použitelné formy. Vytvoří tři osy, jejichž hodnoty se posouvají pomocí stisků.
