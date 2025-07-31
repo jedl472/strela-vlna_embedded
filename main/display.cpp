@@ -4,6 +4,8 @@
 
 #include "xbm.h"
 
+#include <WiFi.h>
+
 #include <U8g2lib.h>
 #include <SPI.h>
 
@@ -106,7 +108,13 @@ void display_info_menu(uint8_t display_page, uint8_t cursor_position, String pos
       u8g2.drawStr(5, 10, "exit");
       u8g2.drawStr(5, 20, "vratit posledni akci");
       u8g2.drawStr(5, 30, "system info");
-      u8g2.drawStr(5, 40, "wifi");
+
+      if (actual_wifi == ""){
+        u8g2.drawStr(5, 40, "no wifi");
+      }
+      else{
+        u8g2.drawStr(5, 40, String(actual_wifi).c_str());
+      }
       u8g2.drawStr(5, 50, "ovladani");
       u8g2.drawStr(50, 50, String(type_of_buttone_menu).c_str());
       
@@ -201,7 +209,8 @@ void display_wifi_menu(uint8_t cursor_position){
 
   u8g2.drawXBM(64, 25, 80, 40, xbm_strela_vlna_logo_small);
   for(int i = 0;i<4;i++){
-    u8g2.drawStr(5, i*10 + 10, wifi_name[i][0].c_str()); //chyba
+    u8g2.drawStr(5, i*10 + 10, wifi_avaiable[i][0].c_str()); //chyba
+    u8g2.drawStr(110, i*10 + 10, wifi_avaiable[i][1].c_str()); //chyba
     // u8g2.drawStr(5, i*10, "test"); //chyba
   }
 
