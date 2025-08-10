@@ -13,12 +13,21 @@ inline String serverName = "https://strela-vlna.gchd.cz/api/cash";
 // inline String serverName = "http://192.168.22.7:80";
 
 // seznam  wifi připojení
-inline String wifi_name[4][2]{
+#define number_of_known_wifi 5
+
+inline String actual_wifi = "";
+
+inline String wifi_name[number_of_known_wifi][2]{
   {"Acd","Zabozrout123+"},
   {"Simon774","skaut123"},
   {"RLGUEST2","RijoLabs2024+"},
   {"STRVLN2","StVl2024"},
+  {"Vodafone Internet2","UV5TtqE5u8"}
 } ;
+
+inline uint8_t number_of_avaiable_wifi = 0;
+
+inline String wifi_avaiable[8][3]{};
 
 inline uint8_t type_of_buttone_menu = 1;
 
