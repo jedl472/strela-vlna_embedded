@@ -136,6 +136,105 @@ void setup() {
 
 
 void loop() {
+  fce_ctecka();
+  
+  main_menu();
+
+
+}
+
+
+void wifi(){
+  int8_t volby_dynamicMenu[3] = {0, 0, 0}; //x(sipka doleva/doprava), y(sipka nahoru/dolu), potvrzení(enter/escape), meni se dynamicky funkci updateParseInput  DULEZITE: da se volne upravovat      int8_t last_volbyY = 0;
+  bool last_jeStisknuteTlacitko[6] = {0, 0, 0, 0, 0, 0};
+  bool jeStisknuteTlacitko[6];
+
+  WiFi.mode(WIFI_STA);
+  WiFi.disconnect();
+  delay(100);
+
+  int n = 0;
+  uint8_t wants_refresh = 1;
+  while (volby_dynamicMenu[2] >= 0){
+    raw_updateButtons(&jeStisknuteTlacitko[0]); //blok pro update tlačítek
+    updateParseInput(&jeStisknuteTlacitko[0], &last_jeStisknuteTlacitko[0], &volby_dynamicMenu[0]);
+    
+    if(volby_dynamicMenu[1] < 0) { volby_dynamicMenu[1] = number_of_avaiable_wifi; } if(volby_dynamicMenu[1] > number_of_avaiable_wifi) { volby_dynamicMenu[1] = 0; }
+    if (wants_refresh){
+    display_message("Serching for network");
+    wants_refresh = 0;
+    n = WiFi.scanNetworks();
+    raw_updateButtons(&jeStisknuteTlacitko[0]); //blok pro update tlačítek
+    updateParseInput(&jeStisknuteTlacitko[0], &last_jeStisknuteTlacitko[0], &volby_dynamicMenu[0]);
+
+    if (n == 0) {
+    }
+    else {
+      Serial.print(n);
+      Serial.println(" networks:");
+      number_of_avaiable_wifi = 0;
+
+      // int maxDisplay = min(n, 10); // Show top 5 only
+      for (int i = 0; i < n; ++i) {
+        String ssid = WiFi.SSID(i);
+        int rssi = WiFi.RSSI(i);
+        for (int l = 0; l < number_of_known_wifi;l++){
+          if (wifi_name[l][0] == ssid){
+            uint8_t exist = 0;
+            for (int k = 0; k < number_of_avaiable_wifi; k++){
+              if (wifi_avaiable[k][0] == ssid){exist = 1;}
+            }
+            if (exist == 0){
+            wifi_avaiable[number_of_avaiable_wifi][0] = ssid;
+            wifi_avaiable[number_of_avaiable_wifi][1] = rssi;
+            wifi_avaiable[number_of_avaiable_wifi][2] = l;
+            number_of_avaiable_wifi ++;
+            }
+          }
+        }
+        Serial.print(ssid); // Trim to fit
+        Serial.print(" (");
+        Serial.print(rssi);
+        Serial.print(")");
+      }
+      if(number_of_avaiable_wifi == 1){
+        volby_dynamicMenu[2] = 1;
+      }
+    }
+    }
+    if (n == 0) {
+      display_message("No networks found");
+    }
+    else{
+    display_wifi_menu(volby_dynamicMenu[1]);
+    }
+  
+
+    if (volby_dynamicMenu[2] == 1){
+      Serial.println(volby_dynamicMenu[1]);
+      Serial.println(number_of_avaiable_wifi);
+      if (volby_dynamicMenu[1] == number_of_avaiable_wifi){ wants_refresh = 1; volby_dynamicMenu[2] = 0; volby_dynamicMenu[1] = 0;}
+      else{
+        display_message("Pripojuji wifi");
+        if (DEBUG_MODE) { Serial.println("Připojuji wifi"); }
+        Serial.println(volby_dynamicMenu[1]);
+        Serial.println(wifi_avaiable[volby_dynamicMenu[1]][2]);
+        String wifi_ssid = wifi_name[wifi_avaiable[volby_dynamicMenu[1]][2].toInt()][0];
+        String wifi_password = wifi_name[wifi_avaiable[volby_dynamicMenu[1]][2].toInt()][1];
+        WiFi.begin(wifi_ssid.c_str(), wifi_password.c_str());
+        do{
+        raw_updateButtons(&jeStisknuteTlacitko[0]); //blok pro update tlačítek
+        updateParseInput(&jeStisknuteTlacitko[0], &last_jeStisknuteTlacitko[0], &volby_dynamicMenu[0]);
+        } while (WiFi.status() != WL_CONNECTED || volby_dynamicMenu[2] == -1);
+        volby_dynamicMenu[2] = -1;
+      }
+    }
+
+  }
+  display_message(WiFi.SSID());
+}
+
+void fce_ctecka(){
   bool uspech;                             // úspěšné čtení
   uint8_t uid[] = { 0, 0, 0, 0, 0, 0, 0 }; // unikátní ID tagu, asi by mělo jít dát kratší, ale všechny možné tagy mají asi max 7 (?) pozic a chceme riskovat stack overflow?
   uint8_t uidLength;                       // délka ID tagu
@@ -380,7 +479,9 @@ void loop() {
       }
     }
   }
+}
 
+void main_menu(){
   if(isMainMenuActive) { // vstupovani do main menu (pomocí interruptu v input.cpp)
     canBeMainMenuTurnedOn = 0;
     display_clear();
@@ -421,24 +522,7 @@ void loop() {
           } else if(volby_dynamicMenu[1] == 3) { // wifi menu
             volby_dynamicMenu[1] = 3;
 
-            wifi();
-
-            // uint8_t minmax_wifi[2] = {0,3};
-
-            // bool vstupf = true;
-            // while (volby_dynamicMenu[2] == 0 || vstupf || !last_jeStisknuteTlacitko[4]){
-            //   display_wifi_menu(volby_dynamicMenu[1]);
-
-            //   raw_updateButtons(&jeStisknuteTlacitko[0]); //blok pro update tlačítek
-            //   updateParseInput(&jeStisknuteTlacitko[0], &last_jeStisknuteTlacitko[0], &volby_dynamicMenu[0]);
-            //   vstupf = false;
-            //   if(volby_dynamicMenu[1] < minmax_wifi[0]) { volby_dynamicMenu[1] = minmax_wifi[1]; } if(volby_dynamicMenu[1] > minmax_wifi[1]) { volby_dynamicMenu[1] = minmax_wifi[0]; }
-            // }
-            // Serial.println(volby_dynamicMenu[1]);
-            // String wifi_ssid = wifi_name[volby_dynamicMenu[1]][0];
-            // String wifi_password = wifi_name[volby_dynamicMenu[1]][1];
-            // WiFi.begin(wifi_ssid.c_str(), wifi_password.c_str());
-            // if(volby_dynamicMenu[1] < minmax[0]) { volby_dynamicMenu[1] = minmax[0]; } if(volby_dynamicMenu[1] > minmax[1]) { volby_dynamicMenu[1] = minmax[1]; }
+            wifi(); // zavolá fce wifi jako při zapínání
 
             isMainMenuActive = 0;
             menu_uroven = 99;
@@ -507,95 +591,4 @@ void loop() {
     // delay(200);
     canBeMainMenuTurnedOn = 1;
   }
-}
-
-
-void wifi(){
-  int8_t volby_dynamicMenu[3] = {0, 0, 0}; //x(sipka doleva/doprava), y(sipka nahoru/dolu), potvrzení(enter/escape), meni se dynamicky funkci updateParseInput  DULEZITE: da se volne upravovat      int8_t last_volbyY = 0;
-  bool last_jeStisknuteTlacitko[6] = {0, 0, 0, 0, 0, 0};
-  bool jeStisknuteTlacitko[6];
-
-  WiFi.mode(WIFI_STA);
-  WiFi.disconnect();
-  delay(100);
-
-  int n = 0;
-  uint8_t wants_refresh = 1;
-  while (volby_dynamicMenu[2] >= 0){
-    raw_updateButtons(&jeStisknuteTlacitko[0]); //blok pro update tlačítek
-    updateParseInput(&jeStisknuteTlacitko[0], &last_jeStisknuteTlacitko[0], &volby_dynamicMenu[0]);
-    
-    if(volby_dynamicMenu[1] < 0) { volby_dynamicMenu[1] = number_of_avaiable_wifi; } if(volby_dynamicMenu[1] > number_of_avaiable_wifi) { volby_dynamicMenu[1] = 0; }
-    if (wants_refresh){
-    display_message("Serching for network");
-    wants_refresh = 0;
-    n = WiFi.scanNetworks();
-    raw_updateButtons(&jeStisknuteTlacitko[0]); //blok pro update tlačítek
-    updateParseInput(&jeStisknuteTlacitko[0], &last_jeStisknuteTlacitko[0], &volby_dynamicMenu[0]);
-
-    if (n == 0) {
-    }
-    else {
-      Serial.print(n);
-      Serial.println(" networks:");
-      number_of_avaiable_wifi = 0;
-
-      // int maxDisplay = min(n, 10); // Show top 5 only
-      for (int i = 0; i < n; ++i) {
-        String ssid = WiFi.SSID(i);
-        int rssi = WiFi.RSSI(i);
-        for (int l = 0; l < number_of_known_wifi;l++){
-          if (wifi_name[l][0] == ssid){
-            uint8_t exist = 0;
-            for (int k = 0; k < number_of_avaiable_wifi; k++){
-              if (wifi_avaiable[k][0] == ssid){exist = 1;}
-            }
-            if (exist == 0){
-            wifi_avaiable[number_of_avaiable_wifi][0] = ssid;
-            wifi_avaiable[number_of_avaiable_wifi][1] = rssi;
-            wifi_avaiable[number_of_avaiable_wifi][2] = l;
-            number_of_avaiable_wifi ++;
-            }
-          }
-        }
-        Serial.print(ssid); // Trim to fit
-        Serial.print(" (");
-        Serial.print(rssi);
-        Serial.print(")");
-      }
-      if(number_of_avaiable_wifi == 1){
-        volby_dynamicMenu[2] = 1;
-      }
-    }
-    }
-    if (n == 0) {
-      display_message("No networks found");
-    }
-    else{
-    display_wifi_menu(volby_dynamicMenu[1]);
-    }
-  
-
-    if (volby_dynamicMenu[2] == 1){
-      Serial.println(volby_dynamicMenu[1]);
-      Serial.println(number_of_avaiable_wifi);
-      if (volby_dynamicMenu[1] == number_of_avaiable_wifi){ wants_refresh = 1; volby_dynamicMenu[2] = 0; volby_dynamicMenu[1] = 0;}
-      else{
-        display_message("Pripojuji wifi");
-        if (DEBUG_MODE) { Serial.println("Připojuji wifi"); }
-        Serial.println(volby_dynamicMenu[1]);
-        Serial.println(wifi_avaiable[volby_dynamicMenu[1]][2]);
-        String wifi_ssid = wifi_name[wifi_avaiable[volby_dynamicMenu[1]][2].toInt()][0];
-        String wifi_password = wifi_name[wifi_avaiable[volby_dynamicMenu[1]][2].toInt()][1];
-        WiFi.begin(wifi_ssid.c_str(), wifi_password.c_str());
-        do{
-        raw_updateButtons(&jeStisknuteTlacitko[0]); //blok pro update tlačítek
-        updateParseInput(&jeStisknuteTlacitko[0], &last_jeStisknuteTlacitko[0], &volby_dynamicMenu[0]);
-        } while (WiFi.status() != WL_CONNECTED || volby_dynamicMenu[2] == -1);
-        volby_dynamicMenu[2] = -1;
-      }
-    }
-
-  }
-  display_message(WiFi.SSID());
 }
