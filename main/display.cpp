@@ -1,3 +1,4 @@
+#include <sys/types.h>
 #include <sys/_stdint.h>
 #include "display.h"
 #include "system_settings.h"
@@ -208,11 +209,13 @@ void display_wifi_menu(uint8_t cursor_position){
   u8g2.setDrawColor(1);
 
   u8g2.drawXBM(64, 25, 80, 40, xbm_strela_vlna_logo_small);
-  for(int i = 0;i<4;i++){
+  uint8_t n = min(number_of_avaiable_wifi, (uint8_t) 5);
+  for(int i = 0;i < n;i++){
     u8g2.drawStr(5, i*10 + 10, wifi_avaiable[i][0].c_str()); //chyba
-    u8g2.drawStr(110, i*10 + 10, wifi_avaiable[i][1].c_str()); //chyba
+    u8g2.drawStr(113, i*10 + 10, wifi_avaiable[i][1].c_str()); //chyba
     // u8g2.drawStr(5, i*10, "test"); //chyba
   }
+  u8g2.drawStr(5, n*10 + 10, "🗘 refresh"); 
 
   u8g2.setDrawColor(0);
   u8g2.drawBox(0, 0, 5, 30);
